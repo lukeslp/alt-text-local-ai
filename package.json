@@ -27,6 +27,7 @@
     "electron-squirrel-startup": "^1.0.1",
     "floating-vue": "^5.2.2",
     "kingpin": "^0.0.0-alpha.2",
+    "marked": "^15.0.4",
     "openai": "^4.77.0",
     "pinia": "^2.3.0",
     "roughjs": "^4.6.6",

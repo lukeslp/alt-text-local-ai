@@ -31,8 +31,9 @@ export const createApp = () => {
                 maxFontSize: 24,
                 detailedAnalysis: true,
                 currentQuadrant: -1,
+                marked: null,
                 tooltips: {
-                    dropzone: 'Drag and drop an image here or click to upload',
+                    dropzone: 'Drag and drop an image here, click to upload, or paste from clipboard',
                     modelSelect: 'Choose the AI model for image analysis',
                     advancedModel: 'Configure custom model settings',
                     advancedSettings: 'Configure advanced model and prompt settings',
@@ -60,6 +61,19 @@ export const createApp = () => {
             this.initializeTheme();
             this.initializeFontSettings();
             this.checkModelAvailability();
+            
+            // Initialize marked from global scope
+            if (window.marked) {
+                this.marked = window.marked;
+                this.marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    mangle: false
+                });
+            } else {
+                logger.warn('Marked library not loaded');
+            }
 
             const savedAnalysisMode = localStorage.getItem('detailed-analysis');
             if (savedAnalysisMode !== null) {
@@ -122,7 +136,7 @@ export const createApp = () => {
                 
                 const base64Data = base64Image.split(',')[1];
                 try {
-                    const defaultPrompt = `You're an Alt Text Specialist, dedicated to creating precise and accessible alt text for digital images. Your primary goal is to ensure visually impaired individuals can engage with imagery by providing concise, accurate descriptions.\n\nPlease describe this image in a clear, natural way. Focus on essential visual elements and any visible text. Avoid prepending with phrases like 'an image of' or 'a photo of'.\n\n${context}`;
+                    const defaultPrompt = `You're an Alt Text Specialist, dedicated to creating precise and accessible alt text for images on the web for people with visual impairments, especially art and memes. Your primary goal is to ensure visually impaired individuals can engage with imagery by providing concise, accurate descriptions.\n\nPlease describe this image in a clear, natural way. Focus on essential visual elements and any visible text. Avoid prepending with phrases like 'an image of' or 'a photo of'.\n\n${context}`;
                     
                     const prompt = this.customPrompt ? `${this.customPrompt}\n\n${context}` : defaultPrompt;
 
@@ -273,7 +287,7 @@ export const createApp = () => {
                     addRemoveLinks: true,
                     maxFiles: 1,
                     maxFilesize: 5,
-                    dictDefaultMessage: "Drop images here or click to upload",
+                    dictDefaultMessage: "Drop images here, click to upload, or paste from clipboard",
                     init: function() {
                         this.on("addedfile", file => {
                             if (this.files.length > 1) {
@@ -289,6 +303,25 @@ export const createApp = () => {
                     logger.error('Dropzone error:', errorMessage);
                     this.addFeedMessage(errorMessage, 'error');
                     this.dropzone.removeFile(file);
+                });
+
+                // Add clipboard paste support
+                document.addEventListener('paste', (event) => {
+                    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                    
+                    for (const item of items) {
+                        if (item.type.indexOf('image') === 0) {
+                            event.preventDefault();
+                            const file = item.getAsFile();
+                            
+                            // Add the file to dropzone
+                            this.dropzone.addFile(file);
+                            
+                            // Add feedback message
+                            this.addFeedMessage('Image pasted from clipboard', 'success');
+                            break;
+                        }
+                    }
                 });
             },
             async processImage(file) {
