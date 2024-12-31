@@ -263,3 +263,59 @@ ipcMain.handle('stop-ollama-server', async () => {
     throw error
   }
 })
+
+const openTerminal = async () => {
+  return new Promise((resolve, reject) => {
+    const platform = os.platform()
+    let command
+
+    switch (platform) {
+      case 'darwin':
+        command = 'open -a Terminal'
+        break
+      case 'win32':
+        command = 'start cmd'
+        break
+      case 'linux':
+        // Try common terminal emulators
+        const terminals = ['gnome-terminal', 'konsole', 'xterm']
+        for (const term of terminals) {
+          try {
+            exec(`which ${term}`, (error) => {
+              if (!error) {
+                command = term
+                return
+              }
+            })
+          } catch (err) {
+            // Continue trying
+          }
+        }
+        if (!command) {
+          command = 'xterm' // Fallback
+        }
+        break
+      default:
+        reject(new Error('Unsupported platform'))
+        return
+    }
+
+    exec(command, (error) => {
+      if (error) {
+        reject(error)
+        return
+      }
+      resolve()
+    })
+  })
+}
+
+ipcMain.handle('open-terminal', async () => {
+  try {
+    await openTerminal()
+    return true
+  } catch (error) {
+    console.error('Failed to open terminal:', error)
+    throw error
+  }
+})

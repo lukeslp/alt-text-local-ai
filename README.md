@@ -21,13 +21,13 @@ A modern web application for generating high-quality alt text descriptions for i
 ### Current Features
 - Support for local model processing via Ollama:
   - LLaVA-Phi3 (default) - [ollama.ai/library/llava-phi3](https://ollama.ai/library/llava-phi3)
-  - Other compatible multimodal models
+  - Other compatible multimodal models - [ollama.ai/library](https://ollama.ai/library/)
 - Accessibility features:
   - Screen reader support with ARIA labels
   - High contrast mode
   - Dark/light theme with system preference detection
   - Customizable font size
-  - OpenDyslexic font support
+  - OpenDyslexic and Atkinson Hyperlegible font support
   - Keyboard navigation
 - Drag-and-drop image upload interface
 - Real-time processing status updates
@@ -37,26 +37,56 @@ A modern web application for generating high-quality alt text descriptions for i
   - Format optimization
 - Detailed analysis mode:
   - Whole image analysis
-  - Quadrant analysis
-  - Section-by-section analysis
-- Local processing option - no data sent to external servers when using Ollama
+  - Quadrant analysis (section-by-section)
+- Local processing - no data sent to external servers
 - Persistent settings storage
 
 ### Planned Features (Backlog)
-- Text-to-speech for generated descriptions
-- Image metadata injection for downloaded files
-- Share sheet implementation for easier sharing
-- Paste support for images
-- Additional model support
-- Batch processing capabilities
-- Custom prompt templates
-- Export options (JSON, CSV)
-- API integration for programmatic access
-- Browser extension
-- Mobile app version
-- Collaborative editing features
-- History and favorites
-- Integration with popular CMS platforms
+- Text-to-speech output for generated descriptions
+- Image metadata features:
+  - Automatic metadata injection for downloaded images
+  - EXIF data preservation
+  - Batch metadata processing
+- Enhanced sharing capabilities:
+  - Share sheet integration
+  - Direct social media platform integration
+  - Quick copy formats for different platforms
+- Image handling improvements:
+  - Paste support for clipboard images
+  - URL-based image processing
+  - Batch processing capabilities
+- Advanced analysis features:
+  - Cultural context interpretation
+  - Brand and logo detection
+  - Facial expression analysis
+  - Color palette extraction
+  - Object relationship mapping
+- Alternative model support:
+  - Custom model configuration
+  - Model comparison view
+  - Fine-tuning options
+- Export and integration:
+  - JSON/CSV export
+  - CMS platform integrations
+  - API access for programmatic use
+- Collaboration tools:
+  - Multi-user editing
+  - Review workflows
+  - Comment system
+- Platform expansion:
+  - Browser extension
+  - Mobile apps (iOS/Android)
+  - CMS plugins
+- History and organization:
+  - Processing history
+  - Favorites system
+  - Tags and categories
+  - Search functionality
+- Accessibility enhancements:
+  - Multiple language support
+  - Custom prompt templates
+  - Contextual help system
+  - Keyboard shortcut customization
 
 ## Prerequisites
 

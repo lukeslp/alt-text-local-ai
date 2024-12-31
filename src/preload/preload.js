@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('electron', {
   getOllamaVersion: () => ipcRenderer.invoke('get-ollama-version'),
   getOllamaPath: () => ipcRenderer.invoke('get-ollama-path'),
   stopOllamaServer: () => ipcRenderer.invoke('stop-ollama-server'),
-  quit: () => ipcRenderer.invoke('quit-app')
+  quit: () => ipcRenderer.invoke('quit-app'),
+  openTerminal: () => ipcRenderer.invoke('open-terminal')
 }) 
