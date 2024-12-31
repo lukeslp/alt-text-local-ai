@@ -12,6 +12,8 @@ export const createApp = () => {
                 selectedModel: 'llava-phi3',
                 showAdvancedModel: false,
                 customModel: '',
+                customPrompt: '',
+                showAdvancedSettings: false,
                 feedMessages: [],
                 results: [],
                 dropzone: null,
@@ -33,6 +35,9 @@ export const createApp = () => {
                     dropzone: 'Drag and drop an image here or click to upload',
                     modelSelect: 'Choose the AI model for image analysis',
                     advancedModel: 'Configure custom model settings',
+                    advancedSettings: 'Configure advanced model and prompt settings',
+                    customModel: 'Override the default LLaVA-Phi3 model',
+                    customPrompt: 'Customize the instructions given to the AI for generating alt text',
                     detailedAnalysis: 'Enable in-depth analysis of image quadrants',
                     themeToggle: 'Switch between light and dark mode',
                     fontSelect: 'Change the display font',
@@ -117,12 +122,16 @@ export const createApp = () => {
                 
                 const base64Data = base64Image.split(',')[1];
                 try {
+                    const defaultPrompt = `You're an Alt Text Specialist, dedicated to creating precise and accessible alt text for digital images. Your primary goal is to ensure visually impaired individuals can engage with imagery by providing concise, accurate descriptions.\n\nPlease describe this image in a clear, natural way. Focus on essential visual elements and any visible text. Avoid prepending with phrases like 'an image of' or 'a photo of'.\n\n${context}`;
+                    
+                    const prompt = this.customPrompt ? `${this.customPrompt}\n\n${context}` : defaultPrompt;
+
                     const response = await fetch(`${this.apiUrl}/api/generate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            model: this.showAdvancedModel ? this.customModel : 'llava-phi3',
-                            prompt: `You're an Alt Text Specialist, dedicated to creating precise and accessible alt text for digital images. Your primary goal is to ensure visually impaired individuals can engage with imagery by providing concise, accurate descriptions.\n\nPlease describe this image in a clear, natural way. Focus on essential visual elements and any visible text. Avoid prepending with phrases like 'an image of' or 'a photo of'.\n\n${context}`,
+                            model: this.customModel || 'llava-phi3',
+                            prompt: prompt,
                             images: [base64Data],
                             stream: false,
                             options: {
@@ -139,7 +148,7 @@ export const createApp = () => {
                     const data = await response.json();
                     return { 
                         response: data.response,
-                        modelUsed: this.showAdvancedModel ? this.customModel : 'llava-phi3'
+                        modelUsed: this.customModel || 'llava-phi3'
                     };
                 } catch (error) {
                     logger.error('Ollama API error:', error);
