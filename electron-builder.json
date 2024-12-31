@@ -1,0 +1,34 @@
+{
+  "appId": "com.actuallyusefulai.alttextai",
+  "productName": "Alt Text AI",
+  "directories": {
+    "output": "dist_electron"
+  },
+  "files": [
+    "dist/**/*",
+    "build/icons/**/*"
+  ],
+  "mac": {
+    "icon": "build/icons/icon.icns",
+    "category": "public.app-category.productivity",
+    "target": ["dmg"],
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "darkModeSupport": true,
+    "arch": ["x64"]
+  },
+  "win": {
+    "icon": "build/icons/icon.ico",
+    "target": ["nsis"]
+  },
+  "linux": {
+    "icon": "build/icons",
+    "target": ["AppImage", "deb"],
+    "category": "Utility"
+  },
+  "dmg": {
+    "icon": "build/icons/icon.icns",
+    "format": "ULFO",
+    "writeUpdateInfo": false
+  }
+} 

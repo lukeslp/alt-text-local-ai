@@ -22,6 +22,11 @@
         </div>
       </main>
     </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <img src="@/assets/images/color_spinner_transparent.gif" alt="Loading..." class="loading-spinner" />
+      <p>{{ loadingMessage }}</p>
+    </div>
   </div>
 </template>
 
@@ -63,4 +68,10 @@ function handleKeyboardShortcuts(event) {
 
 <style>
 @import './styles/main.css';
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1rem;
+}
 </style> 

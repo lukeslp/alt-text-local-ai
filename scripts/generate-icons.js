@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ICON_SIZES = [16, 32, 48, 64, 128, 256, 512];
-const SOURCE_ICON = path.join(__dirname, '../assets/images/icon-512.gif');
+const SOURCE_ICON = path.join(__dirname, '../assets/images/color_spinner_transparent.gif');
 const ICONS_DIR = path.join(__dirname, '../build/icons');
 
 async function generateIcons() {
@@ -15,8 +15,8 @@ async function generateIcons() {
   // Read the source image
   const sourceBuffer = fs.readFileSync(SOURCE_ICON);
 
-  // Convert GIF to PNG for processing
-  const pngBuffer = await sharp(sourceBuffer, { animated: false })
+  // Convert GIF to PNG for processing - use first frame of the GIF
+  const pngBuffer = await sharp(sourceBuffer, { animated: false, page: 0 })
     .png()
     .toBuffer();
 
@@ -24,7 +24,10 @@ async function generateIcons() {
   const iconPromises = ICON_SIZES.map(async (size) => {
     const filename = path.join(ICONS_DIR, `${size}x${size}.png`);
     await sharp(pngBuffer)
-      .resize(size, size)
+      .resize(size, size, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
       .png()
       .toFile(filename);
     console.log(`Generated ${filename}`);
@@ -35,7 +38,10 @@ async function generateIcons() {
   const icoBuffers = await Promise.all(
     icoSizes.map(size =>
       sharp(pngBuffer)
-        .resize(size, size)
+        .resize(size, size, {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })
         .png()
         .toBuffer()
     )
@@ -89,7 +95,10 @@ async function generateIcons() {
     Object.entries(icnsSizes).map(async ([size, type]) => {
       const [width] = size.split('x').map(Number);
       const buffer = await sharp(pngBuffer)
-        .resize(width, width)
+        .resize(width, width, {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })
         .png()
         .toBuffer();
       return { type, buffer };
@@ -114,6 +123,10 @@ async function generateIcons() {
   icnsData.writeUInt32BE(icnsData.length, 4);
   fs.writeFileSync(icnsPath, icnsData);
   console.log(`Generated ${icnsPath}`);
+
+  // Also copy the original GIF to the icons directory for use as a loading spinner
+  fs.copyFileSync(SOURCE_ICON, path.join(ICONS_DIR, 'spinner.gif'));
+  console.log(`Copied spinner.gif`);
 
   // Generate PNG icons for Linux
   await Promise.all(iconPromises);
