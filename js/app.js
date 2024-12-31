@@ -170,68 +170,71 @@ export const createApp = () => {
                 }
             },
             async analyzeImageInDetail(base64Image) {
-                // Initial overall analysis
-                this.currentQuadrant = -1;
-                this.processingStates.analyze.status = 'Analyzing full image...';
-                this.processingStates.analyze.progress = 15;
-                const overallResult = await this.generateAltText(base64Image, 'Provide a high-level overview of the entire image.');
-                this.processingStates.analyze.status = 'Initial analysis complete';
-                this.processingStates.analyze.progress = 25;
-                
-                // Brief pause to show completion of initial analysis
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Split image into quadrants and analyze each
-                this.processingStates.analyze.status = 'Preparing to analyze image sections...';
-                this.processingStates.analyze.progress = 30;
-                const quadrants = await this.splitImageIntoQuadrants(base64Image);
-                
-                const quadrantDescriptions = [];
-                for (let i = 0; i < quadrants.length; i++) {
-                    this.currentQuadrant = i;
-                    this.processingStates.analyze.status = `Analyzing section ${i + 1} of 4...`;
-                    this.processingStates.analyze.progress = 30 + ((i + 1) * 15);
-                    const quadResult = await this.generateAltText(
-                        quadrants[i],
-                        `Focus on describing the specific details visible in this quadrant (${i + 1}/4) of the image. This is the ${
-                            i === 0 ? 'top-left' : 
-                            i === 1 ? 'top-right' : 
-                            i === 2 ? 'bottom-left' : 
-                            'bottom-right'
-                        } section.`
+                try {
+                    // Step 1: Initial overall analysis with default/custom prompt
+                    this.currentQuadrant = -1;
+                    this.processingStates.analyze.status = 'Analyzing full image...';
+                    this.processingStates.analyze.progress = 20;
+                    
+                    const defaultPrompt = this.customPrompt || `You're an Alt Text Specialist, dedicated to creating precise and accessible alt text for images on the web for people with visual impairments, especially art and memes. Your primary goal is to ensure visually impaired individuals can engage with imagery by providing concise, accurate descriptions.`;
+                    
+                    const overallResult = await this.generateAltText(
+                        base64Image, 
+                        `${defaultPrompt}\n\nProvide a high-level overview of the entire image, focusing on the main subject and overall composition.`
                     );
-                    quadrantDescriptions.push(quadResult.response);
-                }
-                
-                // Combine all descriptions
-                this.currentQuadrant = -2;
-                this.processingStates.analyze.status = 'Generating final comprehensive description...';
-                this.processingStates.analyze.progress = 90;
-                
-                const combinedDescription = await this.generateAltText(
-                    base64Image,
-                    `Based on these detailed observations:\n\nOverall view: ${overallResult.response}\n\nDetailed sections:\n${
-                        quadrantDescriptions.map((desc, i) => `${
-                            i === 0 ? 'Top-left' : 
-                            i === 1 ? 'Top-right' : 
-                            i === 2 ? 'Bottom-left' : 
-                            'Bottom-right'
-                        } section: ${desc}`).join('\n')
-                    }\n\nPlease provide a comprehensive, well-organized description that combines these observations into a clear, cohesive alt text. Ensure the description flows naturally and maintains proper context between the different sections.`
-                );
-                
-                this.processingStates.analyze.progress = 100;
-                this.processingStates.analyze.status = 'Analysis complete';
-                this.currentQuadrant = -3;
-                
-                return {
-                    response: combinedDescription.response,
-                    modelUsed: combinedDescription.modelUsed,
-                    analysis: {
-                        overall: overallResult.response,
-                        quadrants: quadrantDescriptions
+                    
+                    // Step 2: Split and analyze quadrants
+                    this.processingStates.analyze.status = 'Analyzing image sections...';
+                    this.processingStates.analyze.progress = 30;
+                    const quadrants = await this.splitImageIntoQuadrants(base64Image);
+                    
+                    const quadrantDescriptions = [];
+                    const quadrantLabels = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+                    
+                    for (let i = 0; i < quadrants.length; i++) {
+                        this.currentQuadrant = i;
+                        this.processingStates.analyze.status = `Analyzing ${quadrantLabels[i]} section...`;
+                        this.processingStates.analyze.progress = 30 + ((i + 1) * 15);
+                        
+                        const quadResult = await this.generateAltText(
+                            quadrants[i],
+                            `Based on this context: "${overallResult.response}"\n\nNow, focus on describing the specific details visible in the ${quadrantLabels[i]} section of the image. What additional details or elements do you notice in this specific area?`
+                        );
+                        
+                        quadrantDescriptions.push(quadResult.response);
                     }
-                };
+                    
+                    // Step 3: Generate final comprehensive description
+                    this.currentQuadrant = -2;
+                    this.processingStates.analyze.status = 'Generating final description...';
+                    this.processingStates.analyze.progress = 90;
+                    
+                    const combinedDescription = await this.generateAltText(
+                        base64Image,
+                        `${defaultPrompt}\n\nBased on these detailed observations:\n\nOverall context: ${overallResult.response}\n\nDetailed sections:\n${
+                            quadrantDescriptions.map((desc, i) => `${quadrantLabels[i]}: ${desc}`).join('\n')
+                        }\n\nPlease provide a single, comprehensive description that combines these observations into clear, cohesive alt text. Focus on creating a natural flow that maintains proper context between the different sections while staying concise and informative.`
+                    );
+                    
+                    this.processingStates.analyze.progress = 100;
+                    this.processingStates.analyze.status = 'Analysis complete';
+                    this.currentQuadrant = -3;
+                    
+                    return {
+                        response: combinedDescription.response,
+                        modelUsed: combinedDescription.modelUsed,
+                        analysis: {
+                            overall: overallResult.response,
+                            quadrants: quadrantDescriptions
+                        }
+                    };
+                } catch (error) {
+                    // Reset states on error
+                    this.currentQuadrant = -3;
+                    this.processingStates.analyze.status = 'Analysis failed';
+                    this.processingStates.analyze.progress = 0;
+                    throw error;
+                }
             },
             async splitImageIntoQuadrants(base64Image) {
                 return new Promise((resolve) => {

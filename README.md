@@ -17,12 +17,36 @@ A modern desktop and web application for generating high-quality alt text descri
 ### Web Version
 Visit [actuallyusefulai.com](https://actuallyusefulai.com) to use the web version.
 
+## Features Overview
+
+### Standard Alt Text Generation
+![Standard alt text generation interface](assets/screenshots/normal_alt.png)
+The basic interface provides a clean, accessible way to generate alt text. Simply drag and drop, click to upload, or paste an image to get started. The generated description appears alongside the image for easy review and copying.
+
+### Advanced Analysis Mode
+![Detailed analysis process](assets/screenshots/detailed_process.png)
+In detailed analysis mode, the app breaks down the image into sections for thorough examination. A visual indicator shows which section is being analyzed, providing real-time feedback on the process.
+
+### Comprehensive Results
+![Detailed analysis results](assets/screenshots/detailed_result.png)
+After detailed analysis, you get both a comprehensive description and section-by-section breakdown. This is particularly useful for complex images or when you need to understand specific details in different areas of the image.
+
+### Custom Prompts and Models
+![Prompt and model override interface](assets/screenshots/prompt_override.png)
+Advanced settings allow you to customize both the prompt template and the AI model used for analysis. Browse available models directly from the Ollama library and craft your own prompts for specialized use cases.
+
 ## Features
 
 ### Current Features
 - Support for local model processing via Ollama:
   - LLaVA-Phi3 (default) - [ollama.ai/library/llava-phi3](https://ollama.ai/library/llava-phi3)
-  - Other compatible multimodal models - [ollama.ai/library](https://ollama.ai/library/)
+  - Custom model override support
+  - Model library browser integration
+  - Custom prompt templates
+- Image input methods:
+  - Drag-and-drop interface
+  - Click to upload
+  - Paste from clipboard (v1.1)
 - Accessibility features:
   - Screen reader support with ARIA labels
   - High contrast mode
@@ -30,17 +54,18 @@ Visit [actuallyusefulai.com](https://actuallyusefulai.com) to use the web versio
   - Customizable font size
   - OpenDyslexic and Atkinson Hyperlegible font support
   - Keyboard navigation
-- Drag-and-drop image upload interface
 - Real-time processing status updates
 - Copy-to-clipboard functionality
 - Image preprocessing:
   - Automatic resizing
   - Format optimization
 - Detailed analysis mode:
-  - Whole image analysis
-  - Quadrant analysis (section-by-section)
+  - Whole image analysis with context preservation
+  - Quadrant analysis with progressive detail
+  - Comprehensive final description
 - Local processing - no data sent to external servers
 - Persistent settings storage
+- Markdown support for descriptions (v1.1)
 
 ### Planned Features (Backlog)
 - Text-to-speech output for generated descriptions
@@ -53,7 +78,6 @@ Visit [actuallyusefulai.com](https://actuallyusefulai.com) to use the web versio
   - Direct social media platform integration
   - Quick copy formats for different platforms
 - Image handling improvements:
-  - Paste support for clipboard images
   - URL-based image processing
   - Batch processing capabilities
 - Advanced analysis features:
@@ -63,7 +87,6 @@ Visit [actuallyusefulai.com](https://actuallyusefulai.com) to use the web versio
   - Color palette extraction
   - Object relationship mapping
 - Alternative model support:
-  - Custom model configuration
   - Model comparison view
   - Fine-tuning options
 - Export and integration:
@@ -85,9 +108,35 @@ Visit [actuallyusefulai.com](https://actuallyusefulai.com) to use the web versio
   - Search functionality
 - Accessibility enhancements:
   - Multiple language support
-  - Custom prompt templates
   - Contextual help system
   - Keyboard shortcut customization
+
+## Changelog
+
+### Version 1.1 (2024-12-31)
+- Added clipboard paste support for images
+- Added custom prompt override capability
+- Added custom model override with Ollama library browser
+- Added markdown support for descriptions
+- Improved detailed analysis workflow:
+  - Better context preservation between analysis steps
+  - More efficient quadrant processing
+  - Enhanced final description synthesis
+- Fixed dark mode consistency in analysis results
+- UI Improvements:
+  - Reorganized settings panel
+  - Added model indicator
+  - Enhanced status messages
+  - Improved dark mode contrast
+
+### Version 1.0 (Initial Release)
+- Basic image upload and analysis
+- Default LLaVA-Phi3 model support
+- Accessibility features
+- Detailed analysis mode
+- Settings persistence
+- Dark/light theme support
+- Font customization
 
 ## Prerequisites
 
