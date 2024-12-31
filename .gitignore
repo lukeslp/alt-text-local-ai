@@ -29,3 +29,4 @@ yarn-error.log*
 
 # Electron build artifacts
 out/
+.DS_Store
