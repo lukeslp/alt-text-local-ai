@@ -1,0 +1,124 @@
+{
+  "name": "alt-text-ai",
+  "productName": "Alt Text AI",
+  "version": "1.0.0",
+  "description": "AI-powered alt text generation for images using local models",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "concurrently \"cross-env ELECTRON=true vite dev\" \"wait-on tcp:5173 && electron .\"",
+    "dev": "vite",
+    "electron:dev": "concurrently \"cross-env ELECTRON=true vite dev\" \"wait-on tcp:5173 && electron .\"",
+    "build": "vite build",
+    "electron:build": "cross-env ELECTRON=true vite build && electron-builder -mwl",
+    "electron:build:mac": "cross-env ELECTRON=true vite build && electron-builder --mac --config.mac.identity=null",
+    "electron:build:win": "cross-env ELECTRON=true vite build && electron-builder --win",
+    "electron:build:linux": "cross-env ELECTRON=true vite build && electron-builder --linux",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
+    "@huggingface/inference": "^2.8.1",
+    "@vueuse/core": "^12.2.0",
+    "cjs": "^0.0.11",
+    "dropzone": "^5.9.3",
+    "electron-squirrel-startup": "^1.0.1",
+    "floating-vue": "^5.2.2",
+    "kingpin": "^0.0.0-alpha.2",
+    "openai": "^4.77.0",
+    "pinia": "^2.3.0",
+    "roughjs": "^4.6.6",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.6.2",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.1",
+    "cross-env": "^7.0.3",
+    "electron": "^25.9.8",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^4.5.5",
+    "vite-plugin-electron": "^0.11.2",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.alttext.ai",
+    "productName": "Alt Text AI",
+    "files": [
+      "dist/**/*",
+      "src/main/**/*",
+      "package.json",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist_electron",
+      "buildResources": "assets"
+    },
+    "afterSign": "scripts/notarize.js",
+    "mac": {
+      "icon": "assets/images/icon-512.gif",
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "notarize": true
+    },
+    "dmg": {
+      "sign": false,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "icon": "assets/images/icon-512.gif",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "assets/images/icon-512.gif",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukeslp/alt-text-generator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lukeslp/alt-text-generator/issues"
+  },
+  "homepage": "https://github.com/lukeslp/alt-text-generator#readme"
+}

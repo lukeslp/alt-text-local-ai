@@ -1,0 +1,163 @@
+/* Component Styles */
+
+/* Collapsible Panel */
+.collapsible-panel {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden;
+}
+
+.collapsible-header {
+    @apply flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700;
+}
+
+.collapsible-content {
+    @apply p-4 border-t border-gray-200 dark:border-gray-700;
+}
+
+/* Alt Text Editor */
+.alt-text-editor {
+    @apply space-y-4;
+}
+
+.editor-toolbar {
+    @apply flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-t-lg border border-gray-200 dark:border-gray-700;
+}
+
+.editor-content {
+    @apply p-4 bg-white dark:bg-gray-900 rounded-b-lg border border-t-0 border-gray-200 dark:border-gray-700;
+}
+
+.editor-actions {
+    @apply flex justify-end space-x-2 mt-4;
+}
+
+/* Image Upload */
+.image-upload {
+    @apply relative;
+}
+
+.upload-overlay {
+    @apply absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white;
+}
+
+.upload-progress {
+    @apply w-full max-w-md;
+}
+
+/* Result Card */
+.result-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-shadow duration-200 hover:shadow-xl;
+}
+
+.result-image {
+    @apply w-full h-48 object-cover;
+}
+
+.result-content {
+    @apply p-4 space-y-4;
+}
+
+.result-actions {
+    @apply flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700;
+}
+
+/* Status Messages */
+.status-message {
+    @apply flex items-center p-4 rounded-lg;
+}
+
+.status-icon {
+    @apply flex-shrink-0 w-5 h-5 mr-3;
+}
+
+.status-content {
+    @apply flex-grow;
+}
+
+.status-close {
+    @apply flex-shrink-0 ml-3;
+}
+
+/* Settings Panel */
+.settings-section {
+    @apply space-y-4 p-4 border-b border-gray-200 dark:border-gray-700 last:border-0;
+}
+
+.settings-header {
+    @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.settings-description {
+    @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+/* Form Controls */
+.form-group {
+    @apply space-y-2;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+.form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700;
+}
+
+.form-select {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700;
+}
+
+.form-checkbox {
+    @apply w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600;
+}
+
+.form-radio {
+    @apply w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600;
+}
+
+/* Buttons */
+.icon-button {
+    @apply p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.button-group {
+    @apply flex space-x-2;
+}
+
+/* Loading States */
+.loading-spinner {
+    @apply animate-spin w-5 h-5 text-gray-500;
+}
+
+.loading-overlay {
+    @apply absolute inset-0 bg-white bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 flex items-center justify-center;
+}
+
+/* Tooltips */
+.tooltip {
+    @apply absolute z-10 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg;
+}
+
+/* Accessibility */
+.skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-white focus:text-blue-600;
+}
+
+.focus-outline {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .result-card {
+        @apply mx-4;
+    }
+    
+    .settings-panel {
+        @apply fixed inset-0 z-50;
+    }
+    
+    .button-group {
+        @apply flex-col space-x-0 space-y-2;
+    }
+} 

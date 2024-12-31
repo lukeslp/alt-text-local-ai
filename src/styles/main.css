@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+  }
+
+  .toggle-button {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700;
+  }
+
+  .toggle-button-knob {
+    @apply inline-block h-4 w-4 transform rounded-full bg-white transition;
+  }
+} 

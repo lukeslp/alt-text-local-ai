@@ -1,0 +1,93 @@
+/* Theme Variables */
+:root {
+    /* Colors */
+    --color-primary: theme('colors.blue.500');
+    --color-primary-dark: theme('colors.blue.600');
+    --color-secondary: theme('colors.gray.500');
+    --color-secondary-dark: theme('colors.gray.600');
+    --color-bg: theme('colors.gray.100');
+    --color-bg-dark: theme('colors.gray.900');
+    --color-text: theme('colors.gray.900');
+    --color-text-dark: theme('colors.gray.100');
+
+    /* Fonts */
+    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-playfair: 'Playfair Display', serif;
+    --font-opendyslexic: 'OpenDyslexic', sans-serif;
+    --font-atkinson: 'Atkinson Hyperlegible', sans-serif;
+}
+
+/* Dark Mode */
+.dark {
+    --color-primary: theme('colors.blue.400');
+    --color-primary-dark: theme('colors.blue.500');
+    --color-secondary: theme('colors.gray.400');
+    --color-secondary-dark: theme('colors.gray.500');
+    --color-bg: theme('colors.gray.900');
+    --color-bg-dark: theme('colors.gray.800');
+    --color-text: theme('colors.gray.100');
+    --color-text-dark: theme('colors.gray.900');
+}
+
+/* High Contrast Mode */
+.high-contrast {
+    --color-primary: theme('colors.blue.600');
+    --color-primary-dark: theme('colors.blue.700');
+    --color-secondary: theme('colors.gray.700');
+    --color-secondary-dark: theme('colors.gray.800');
+    --color-text: theme('colors.gray.900');
+    --color-text-dark: theme('colors.gray.100');
+}
+
+.dark.high-contrast {
+    --color-primary: theme('colors.blue.300');
+    --color-primary-dark: theme('colors.blue.400');
+    --color-secondary: theme('colors.gray.300');
+    --color-secondary-dark: theme('colors.gray.400');
+    --color-text: theme('colors.gray.100');
+    --color-text-dark: theme('colors.gray.900');
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Base Theme Classes */
+.bg-surface {
+    @apply bg-white dark:bg-gray-800;
+}
+
+.border-color {
+    @apply border-gray-200 dark:border-gray-700;
+}
+
+.text-primary {
+    color: var(--color-text);
+}
+
+.text-primary-dark {
+    color: var(--color-text-dark);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-enter-active {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.slide-enter-active {
+    animation: slideIn 0.3s ease-out;
+} 
