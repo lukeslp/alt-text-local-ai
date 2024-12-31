@@ -122,7 +122,10 @@
     "url": "git+https://github.com/lukeslp/alt-text-generator.git"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "Lucas Steuber",
+    "email": "luke@actuallyusefulai.com"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/lukeslp/alt-text-generator/issues"

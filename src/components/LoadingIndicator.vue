@@ -5,8 +5,15 @@
     role="status"
     :aria-label="label">
     
-    <!-- Circular Loader -->
-    <div v-if="type === 'spinner'" class="loading-circle"></div>
+    <!-- Spinner -->
+    <div v-if="type === 'spinner'" class="spinner">
+      <img 
+        src="@/assets/images/color_spinner_transparent.gif" 
+        :width="size" 
+        :height="size" 
+        alt=""
+        class="spinner-gif" />
+    </div>
     
     <!-- Progress Bar -->
     <div v-else-if="type === 'progress'" class="progress" :class="{ indeterminate: !progress }">
@@ -54,6 +61,10 @@ defineProps({
     type: Boolean,
     default: true
   },
+  size: {
+    type: Number,
+    default: 48
+  },
   width: {
     type: String,
     default: '100%'
@@ -71,4 +82,69 @@ defineProps({
     default: 'Loading'
   }
 })
-</script> 
+</script>
+
+<style scoped>
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-gif {
+  display: block;
+}
+
+.progress {
+  width: 100%;
+  height: 4px;
+  background: var(--color-surface-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.progress.indeterminate .progress-bar {
+  width: 50%;
+  animation: indeterminate 1.5s infinite ease-in-out;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-dark) 25%,
+    var(--color-surface) 50%,
+    var(--color-surface-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+</style> 

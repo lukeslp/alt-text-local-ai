@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ICON_SIZES = [16, 32, 48, 64, 128, 256, 512];
-const SOURCE_ICON = path.join(__dirname, '../assets/images/color_spinner_transparent.gif');
+const SOURCE_ICON = path.join(__dirname, '../color_spinner_transparent.gif');
 const ICONS_DIR = path.join(__dirname, '../build/icons');
 
 async function generateIcons() {
