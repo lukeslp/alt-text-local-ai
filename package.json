@@ -91,15 +91,20 @@
       "icon": "assets/icons/triangle_construct_light.gif",
       "iconSize": 128,
       "title": "${productName}",
+      "backgroundColor": "#f9fafb",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
       "contents": [
         {
           "x": 130,
-          "y": 220,
+          "y": 190,
           "type": "file"
         },
         {
           "x": 410,
-          "y": 220,
+          "y": 190,
           "type": "link",
           "path": "/Applications"
         }
