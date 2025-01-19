@@ -132,4 +132,26 @@ async function generateIcons() {
   await Promise.all(iconPromises);
 }
 
+// Copy the GIF file to build resources
+const sourceGif = path.join(__dirname, '../triangle_construct_light.gif');
+const destGif = path.join(__dirname, '../build/icons/triangle_construct_light.gif');
+
+try {
+  fs.mkdirSync(path.join(__dirname, '../build/icons'), { recursive: true });
+  fs.copyFileSync(sourceGif, destGif);
+  console.log('Copied triangle_construct_light.gif to build resources');
+} catch (err) {
+  console.error('Error copying GIF file:', err);
+}
+
+// Copy to app resources
+const appResourcesGif = path.join(__dirname, '../dist_electron/mac-arm64/Alt Text AI.app/Contents/Resources/triangle_construct_light.gif');
+try {
+  fs.mkdirSync(path.dirname(appResourcesGif), { recursive: true });
+  fs.copyFileSync(sourceGif, appResourcesGif);
+  console.log('Copied triangle_construct_light.gif to app resources');
+} catch (err) {
+  console.error('Error copying GIF to app resources:', err);
+}
+
 generateIcons().catch(console.error); 

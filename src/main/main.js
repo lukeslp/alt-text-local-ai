@@ -35,15 +35,31 @@ const installOllama = async () => {
     fs.writeFileSync(tempPath, script)
     fs.chmodSync(tempPath, '755')
     
-    return new Promise((resolve, reject) => {
-      exec(`sh ${tempPath}`, (error, stdout, stderr) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        resolve(stdout)
+    try {
+      // Install Ollama
+      await new Promise((resolve, reject) => {
+        exec(`sh ${tempPath}`, (error, stdout, stderr) => {
+          if (error) {
+            reject(error)
+            return
+          }
+          resolve(stdout)
+        })
       })
-    })
+
+      // Start the server
+      await startOllamaServer()
+      
+      // Wait for server to be ready
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Pull the default model
+      await pullModel('llava-phi3')
+      
+      return true
+    } catch (error) {
+      throw error
+    }
   } else if (platform === 'win32') {
     throw new Error('Windows installation not yet implemented')
   } else {
@@ -107,7 +123,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     title: 'Alt Text AI',
-    icon: path.join(__dirname, '../../assets/images/icon-512.gif'),
+    icon: path.join(__dirname, '../../assets/icons/triangle_construct_light.gif'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

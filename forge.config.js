@@ -23,7 +23,9 @@ module.exports = {
       config: {
         name: 'alt_text_ai',
         authors: 'Luke Steuber',
-        description: 'AI-powered alt text generator for images'
+        description: 'AI-powered alt text generator for images',
+        iconUrl: 'https://raw.githubusercontent.com/lukeslp/alt-text-generator/main/assets/icon.ico',
+        setupIcon: 'assets/icon.ico'
       }
     },
     {
@@ -49,7 +51,11 @@ module.exports = {
             type: 'link',
             path: '/Applications'
           }
-        ]
+        ],
+        window: {
+          width: 540,
+          height: 380
+        }
       }
     }
   ]

@@ -2,6 +2,22 @@
 
 A modern desktop and web application for generating high-quality alt text descriptions for images using AI vision models. Built with Vue.js and Electron, it provides an accessible interface for AI-assisted image descriptions using local Ollama models.
 
+## Installation
+
+### macOS
+1. Download the latest .dmg file from [Releases](https://github.com/lukeslp/alt-text-generator/releases)
+2. Double-click the .dmg file to open it
+3. Drag Alt Text AI to your Applications folder
+4. Launch Alt Text AI from Applications
+5. On first launch:
+   - The app will automatically attempt to install Ollama (a required dependency)
+   - You may need to approve the installation when prompted
+   - The setup wizard will guide you through the rest of the process
+
+Note: If you prefer to install Ollama manually:
+- Visit [ollama.ai](https://ollama.ai) to download and install Ollama first
+- Then launch Alt Text AI
+
 ## Quick Start
 
 ### Desktop App (Recommended)

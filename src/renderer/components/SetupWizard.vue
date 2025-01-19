@@ -212,12 +212,14 @@ export default {
           return
         }
 
-        // Try automatic installation first
+        // Try automatic installation (now includes model pull and server start)
         try {
           await window.electron.installOllama()
           ollamaInstalled.value = true
-          currentStep.value = 2
-          startModelPull()
+          modelPulled.value = true
+          serverStarted.value = true
+          currentStep.value = 3
+          finish()
         } catch (err) {
           // If automatic installation fails, guide for manual installation
           error.value = 'Automatic installation failed. Please install manually from ollama.ai'

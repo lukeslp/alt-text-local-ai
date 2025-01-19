@@ -14,7 +14,9 @@
     "electron:build:mac": "npm run generate-icons && cross-env ELECTRON=true vite build && electron-builder --mac --config.mac.identity=null",
     "electron:build:win": "npm run generate-icons && cross-env ELECTRON=true vite build && electron-builder --win",
     "electron:build:linux": "npm run generate-icons && cross-env ELECTRON=true vite build && electron-builder --linux",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "icons": "./scripts/create-icons.sh",
+    "prebuild": "npm run icons"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -54,15 +56,16 @@
     "files": [
       "dist/**/*",
       "src/main/**/*",
-      "src/preload/**/*"
+      "src/preload/**/*",
+      "assets/icons/*"
     ],
     "directories": {
       "output": "dist_electron",
-      "buildResources": "build"
+      "buildResources": "assets"
     },
     "afterSign": "scripts/notarize.js",
     "mac": {
-      "icon": "build/icons/icon.icns",
+      "icon": "assets/icons/triangle_construct_light.gif",
       "category": "public.app-category.productivity",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -85,10 +88,14 @@
       "sign": false,
       "format": "ULFO",
       "writeUpdateInfo": false,
+      "icon": "assets/icons/triangle_construct_light.gif",
+      "iconSize": 128,
+      "title": "${productName}",
       "contents": [
         {
           "x": 130,
-          "y": 220
+          "y": 220,
+          "type": "file"
         },
         {
           "x": 410,
