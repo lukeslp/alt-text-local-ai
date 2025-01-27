@@ -210,6 +210,16 @@
     padding: var(--spacing-lg);
 }
 
+/* Add loading spinner */
+.processing-overlay::after {
+    content: "";
+    width: 48px;
+    height: 48px;
+    background: var(--color-accent) url('/assets/images/icon-512.gif') center/60% no-repeat;
+    border-radius: 50%;
+    animation: processing-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
 .processing-step {
     width: 100%;
     max-width: 300px;

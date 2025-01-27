@@ -787,4 +787,35 @@ code, pre {
     text-align: center;
     font-variant-numeric: tabular-nums;
     color: var(--color-text-primary);
+}
+
+.branding-anchor {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.branding-gif {
+  width: 60px; 
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.branding-anchor:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .branding-anchor {
+    bottom: 10px;
+    left: 10px;
+  }
+  .branding-gif {
+    width: 50px;
+  }
 } 
