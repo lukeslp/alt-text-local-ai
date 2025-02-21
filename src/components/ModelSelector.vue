@@ -1,10 +1,10 @@
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-medium">Model</h3>
+      <h3 class="text-lg font-semibold">Model Selection</h3>
       <button 
         @click="refreshModels" 
-        class="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+        class="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         :class="{ 'animate-spin': store.modelStatus.isDetecting }"
         :disabled="store.modelStatus.isDetecting"
         :aria-busy="store.modelStatus.isDetecting"
@@ -16,24 +16,29 @@
       </button>
     </div>
 
-    <div v-if="store.modelStatus.error" class="text-red-600 dark:text-red-400 text-sm mb-2">
+    <div v-if="store.modelStatus.error" class="text-red-600 dark:text-red-400 text-sm mb-2 p-2 bg-red-100 dark:bg-red-900 rounded">
       {{ store.modelStatus.error }}
     </div>
 
-    <div class="relative">
-      <select
-        id="model-select"
-        v-model="selectedModelName"
-        class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        :disabled="store.modelStatus.isDetecting"
-        aria-label="Select AI model"
-      >
-        <option v-for="model in store.availableModels" :key="model.name" :value="model.name">
-          {{ model.name }} ({{ formatSize(model.size) }})
-        </option>
-      </select>
+    <div class="space-y-2">
+      <label for="model-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Select Vision Model
+      </label>
+      <div class="relative">
+        <select
+          id="model-select"
+          v-model="selectedModelName"
+          class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
+          :disabled="store.modelStatus.isDetecting"
+          aria-label="Select AI model"
+        >
+          <option v-for="model in visionModels" :key="model.name" :value="model.name">
+            {{ model.name }} ({{ formatSize(model.size) }})
+          </option>
+        </select>
+      </div>
 
-      <div v-if="!hasVisionModel" class="mt-2 text-yellow-600 dark:text-yellow-400 text-sm">
+      <div v-if="!hasVisionModel" class="mt-2 text-yellow-600 dark:text-yellow-400 text-sm p-2 bg-yellow-100 dark:bg-yellow-900 rounded">
         Warning: No vision-capable models detected. Please install llava, llava-phi3, or bakllava.
       </div>
     </div>
@@ -58,12 +63,14 @@ const selectedModelName = computed({
   }
 });
 
-const hasVisionModel = computed(() => {
-  const visionModels = ['llava', 'llava-phi3', 'bakllava'];
-  return store.availableModels.some(model => 
-    visionModels.some(vm => model.name.toLowerCase().includes(vm))
+const visionModels = computed(() => {
+  const visionModelNames = ['llava', 'llava-phi3', 'bakllava'];
+  return store.availableModels.filter(model => 
+    visionModelNames.some(vm => model.name.toLowerCase().includes(vm))
   );
 });
+
+const hasVisionModel = computed(() => visionModels.value.length > 0);
 
 // Format file size
 function formatSize(bytes) {

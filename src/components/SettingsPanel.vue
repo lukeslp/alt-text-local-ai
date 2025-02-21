@@ -5,6 +5,9 @@
     </div>
     
     <div class="space-y-6">
+      <!-- Model Selection -->
+      <ModelSelector />
+
       <!-- Font Settings -->
       <div class="space-y-4">
         <h3 class="text-lg font-semibold">Typography</h3>
@@ -108,6 +111,7 @@
 <script setup>
 import { useStore } from '../store';
 import { useAccessibility } from '../composables/useAccessibility';
+import ModelSelector from './ModelSelector.vue';
 
 const store = useStore();
 const accessibility = useAccessibility();
