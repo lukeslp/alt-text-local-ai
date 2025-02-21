@@ -5,9 +5,11 @@ const { exec, spawn } = require('child_process')
 const https = require('https')
 const fs = require('fs')
 const os = require('os')
+const Installer = require('../../scripts/installer')
 
 let mainWindow
 let ollamaProcess
+let installer
 
 const getOllamaInstallScript = () => {
   return new Promise((resolve, reject) => {
@@ -151,38 +153,52 @@ function createWindow() {
 
 ipcMain.handle('install-ollama', async () => {
   try {
-    await installOllama()
-    return true
+    installer = installer || new Installer();
+    const isInstalled = await installer.checkOllamaInstallation();
+    
+    if (!isInstalled) {
+      await installer.installOllama();
+    }
+    
+    return true;
   } catch (error) {
-    throw error
+    console.error('Failed to install Ollama:', error);
+    throw error;
   }
-})
+});
 
 ipcMain.handle('pull-model', async (event, modelName) => {
   try {
-    await pullModel(modelName)
-    return true
+    installer = installer || new Installer();
+    await installer.pullModel(modelName, (progress) => {
+      event.sender.send('model-pull-progress', progress);
+    });
+    return true;
   } catch (error) {
-    throw error
+    console.error('Failed to pull model:', error);
+    throw error;
   }
-})
+});
 
 ipcMain.handle('start-ollama-server', async () => {
   try {
-    await startOllamaServer()
-    return true
+    installer = installer || new Installer();
+    ollamaProcess = await installer.startOllamaServer();
+    return true;
   } catch (error) {
-    throw error
+    console.error('Failed to start Ollama server:', error);
+    throw error;
   }
-})
+});
 
 ipcMain.handle('check-ollama-status', async () => {
-  return new Promise((resolve) => {
-    exec('ollama --version', (error) => {
-      resolve(!error)
-    })
-  })
-})
+  try {
+    installer = installer || new Installer();
+    return await installer.checkOllamaInstallation();
+  } catch (error) {
+    return false;
+  }
+});
 
 ipcMain.handle('quit-app', () => {
   app.quit()

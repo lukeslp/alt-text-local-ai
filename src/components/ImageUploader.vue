@@ -13,6 +13,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import Dropzone from 'dropzone';
 import { useImageProcessing } from '../composables/useImageProcessing';
+import { logger } from '../utils/logger';
 
 const props = defineProps({
   onImageProcessed: {
@@ -39,6 +40,7 @@ function initializeDropzone() {
     dropzone.value.destroy();
   }
 
+  Dropzone.autoDiscover = false;
   dropzone.value = new Dropzone("#imageUpload", {
     url: "#",
     autoProcessQueue: false,
@@ -47,19 +49,57 @@ function initializeDropzone() {
     addRemoveLinks: true,
     maxFiles: 1,
     maxFilesize: 5,
-    dictDefaultMessage: "Drop images here or click to upload"
+    dictDefaultMessage: "Drop images here or click to upload",
+    dictInvalidFileType: "This file type is not supported",
+    dictFileTooBig: "File is too large ({{filesize}}MB). Max filesize: {{maxFilesize}}MB.",
+    accept: async function(file, done) {
+      try {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          done(`Invalid file type. Please upload an image file.`);
+          return;
+        }
+
+        // Process the image
+        await processImage(file);
+        done();
+      } catch (error) {
+        logger.error('File processing error:', error);
+        done(error.message);
+      }
+    }
   });
 
-  dropzone.value.on("addedfile", async (file) => {
+  dropzone.value.on("addedfile", (file) => {
     if (dropzone.value.files.length > 1) {
       dropzone.value.removeFile(dropzone.value.files[0]);
     }
-    await processImage(file);
   });
 
   dropzone.value.on("error", (file, errorMessage) => {
-    console.error('Dropzone error:', errorMessage);
+    logger.error('Dropzone error:', errorMessage);
+    if (typeof errorMessage === 'string') {
+      props.onImageProcessed?.({ error: errorMessage });
+    } else if (errorMessage?.message) {
+      props.onImageProcessed?.({ error: errorMessage.message });
+    }
     dropzone.value.removeFile(file);
+  });
+
+  // Add clipboard paste support
+  document.addEventListener('paste', (event) => {
+    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    
+    for (const item of items) {
+      if (item.type.indexOf('image') === 0) {
+        event.preventDefault();
+        const file = item.getAsFile();
+        
+        // Add the file to dropzone
+        dropzone.value.addFile(file);
+        break;
+      }
+    }
   });
 }
 </script>
@@ -71,11 +111,20 @@ function initializeDropzone() {
   border: 2px dashed #0087F7 !important;
   border-radius: 5px !important;
   background: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.dropzone:hover {
+  border-color: #0056b3 !important;
 }
 
 :root.dark .dropzone {
   background: #1a1a1a !important;
   border-color: #4a5568 !important;
+}
+
+:root.dark .dropzone:hover {
+  border-color: #718096 !important;
 }
 
 .dropzone .dz-message {
@@ -89,7 +138,16 @@ function initializeDropzone() {
 }
 
 .dropzone .dz-preview {
-  margin: 1em !important;
+  margin: 1rem !important;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  background: #f56565 !important;
+  color: white !important;
+}
+
+:root.dark .dropzone .dz-preview .dz-error-message {
+  background: #742a2a !important;
 }
 
 .dropzone .dz-preview .dz-image {

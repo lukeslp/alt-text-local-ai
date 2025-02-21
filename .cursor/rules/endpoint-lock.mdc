@@ -1,0 +1,31 @@
+---
+description: Every time you're making changes to implementations or snippets
+globs: *
+---
+<-- Endpoint Lock -->
+
+# Guidelines for Reviewing and Replacing Code Snippets
+
+When reviewing a snippet file or replacing one implementation with another from an example, follow these guidelines to ensure the full file context is taken into account and that the correct, functional implementation is used:
+
+## 1. Review Full Files
+- Thoroughly review the **entire file(s)** provided rather than relying solely on isolated snippets.
+- Identify all relevant sections and understand the overall **context of the code or project plan**.
+
+## 2. Identify the Correct Sections
+- **Accurately determine** which part of the file needs to be replaced.
+- Ensure you are targeting the **precise location** in the target file that requires updating.
+
+## 3. Use the Provided Example Accurately
+- When replacing a non-functional implementation, **verify that you are copying the correct and complete** implementation from the example file.
+- Avoid reintroducing any **outdated or incorrect versions**.
+
+## 4. Maintain Context and Integrity
+- Ensure that the **updated version integrates seamlessly** with the rest of the file.
+- **Do not remove or alter unrelated content** unless necessary for correct integration.
+
+## 5. Clarify Ambiguities
+- If any part of the request or file context is unclear, **ask for clarification** instead of making assumptions.
+- Confirm that your replacement **meets the intended functional requirements**.
+
+By adhering to these steps, you ensure that the **entire file is reviewed**, and **precise, accurate updates** are implemented, avoiding repeated mistakes with incorrect versions.

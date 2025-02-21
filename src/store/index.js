@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
 import { HF_TOKEN, HF_API_URL } from '../config/constants';
 import OpenAI from 'openai';
+import { logger } from '../utils/logger';
 
 export const useStore = defineStore('main', () => {
   // State
@@ -9,33 +10,48 @@ export const useStore = defineStore('main', () => {
   const feedMessages = ref([]);
   const nextId = ref(1);
   const selectedModel = ref('llava-phi3');
+  const availableModels = ref([]);
   const selectedProvider = ref('local');
   const apiUrl = ref('http://localhost:11434');
   const modelStatus = ref({
     loading: false,
     error: null,
-    lastCheck: null
+    lastCheck: null,
+    isDetecting: false
   });
+  const modelParams = ref({
+    temperature: 0.7,
+    num_ctx: 4096,
+    top_p: 0.8
+  });
+  const customPrompt = ref('');
+  const detailedAnalysis = ref(true);
+  const theme = ref(
+    localStorage.theme === 'dark' || 
+    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ? 'dark'
+      : 'light'
+  );
 
   // Font settings
-  const selectedFont = ref(localStorage.getItem('font-family') || 'Inter');
-  const baseFontSize = ref(parseInt(localStorage.getItem('font-size')) || 16);
+  const selectedFont = ref(localStorage.getItem('font-family') || 'playfair');
+  const baseFontSize = ref(parseInt(localStorage.getItem('base-font-size')) || 16);
   const showSettings = ref(false);
   const showStatusFeed = ref(false);
 
   // Getters
   const nextResultId = computed(() => nextId.value++);
+  const isDarkMode = computed(() => theme.value === 'dark');
 
   // Actions
   function addResult(result) {
-    results.value = [result, ...results.value];
+    results.value.unshift(result);
   }
 
   function updateResult(result) {
     const index = results.value.findIndex(r => r.id === result.id);
     if (index !== -1) {
       results.value[index] = result;
-      results.value = [...results.value];
     }
   }
 
@@ -43,10 +59,10 @@ export const useStore = defineStore('main', () => {
     results.value = results.value.filter(r => r.id !== resultId);
   }
 
-  function addFeedMessage(text, type = 'info') {
+  function addFeedMessage(message, type = 'info') {
     feedMessages.value.unshift({
       id: Date.now(),
-      text,
+      text: message,
       type,
       timestamp: new Date().toLocaleTimeString()
     });
@@ -56,87 +72,104 @@ export const useStore = defineStore('main', () => {
     }
   }
 
-  async function generateAltText(base64Image) {
-    if (selectedProvider.value === 'huggingface') {
-      return generateHuggingFaceAltText(base64Image);
-    } else {
-      return generateOllamaAltText(base64Image);
-    }
-  }
+  // Model Management
+  async function detectModels() {
+    modelStatus.value.isDetecting = true;
+    modelStatus.value.error = null;
 
-  async function generateHuggingFaceAltText(base64Image) {
     try {
-      const openai = new OpenAI({
-        baseURL: "https://sbiswhfbsy74mre5.us-east4.gcp.endpoints.huggingface.cloud/v1/",
-        apiKey: HF_TOKEN,
-        dangerouslyAllowBrowser: true
-      });
-
-      const stream = await openai.chat.completions.create({
-        model: "tgi",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: base64Image
-                }
-              },
-              {
-                type: "text",
-                text: "Describe this image in one sentence, suitable for use as alt text. Be concise and natural."
-              }
-            ]
-          }
-        ],
-        max_tokens: 150,
-        stream: true
-      });
-
-      let fullResponse = '';
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        fullResponse += content;
+      const response = await fetch('http://localhost:11434/api/tags');
+      if (!response.ok) {
+        throw new Error('Failed to fetch models from Ollama');
       }
 
-      return { response: cleanDescription(fullResponse) };
+      const data = await response.json();
+      availableModels.value = data.models || [];
+
+      // Check if current model exists in available models
+      const currentModelExists = availableModels.value.some(m => m.name === selectedModel.value);
+      
+      // If current model doesn't exist, select first available model with vision capabilities
+      if (!currentModelExists) {
+        const visionModels = ['llava', 'llava-phi3', 'bakllava'];
+        const firstAvailableVisionModel = availableModels.value.find(m => 
+          visionModels.some(vm => m.name.toLowerCase().includes(vm))
+        );
+        
+        if (firstAvailableVisionModel) {
+          selectedModel.value = firstAvailableVisionModel.name;
+        } else if (availableModels.value.length > 0) {
+          selectedModel.value = availableModels.value[0].name;
+          addFeedMessage('No vision-capable models found. Please install llava, llava-phi3, or bakllava.', 'warning');
+        }
+      }
+
+      modelStatus.value.lastCheck = new Date();
+      return availableModels.value;
     } catch (error) {
-      console.error('Hugging Face API error:', error);
-      if (error.message.includes('too large to be loaded automatically')) {
-        throw new Error('This model requires an Inference Endpoint. Please configure an endpoint URL or use a different model.');
-      }
-      throw new Error(`Hugging Face API error: ${error.message}`);
+      modelStatus.value.error = error.message;
+      addFeedMessage(`Failed to detect models: ${error.message}`, 'error');
+      throw error;
+    } finally {
+      modelStatus.value.isDetecting = false;
     }
   }
 
-  async function generateOllamaAltText(base64Image) {
-    const base64Data = base64Image.split(',')[1];
+  async function setModel(modelName) {
     try {
-      const response = await fetch(`${apiUrl.value}/api/generate`, {
+      // Validate model exists
+      const modelExists = availableModels.value.some(m => m.name === modelName);
+      if (!modelExists) {
+        throw new Error(`Model ${modelName} not found`);
+      }
+
+      selectedModel.value = modelName;
+      
+      // Load the model in the background
+      await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          prompt: '' // Empty prompt just loads the model
+        })
+      });
+
+      addFeedMessage(`Switched to model: ${modelName}`, 'success');
+    } catch (error) {
+      addFeedMessage(`Failed to set model: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  // Modified generateAltText to use simplified parameters
+  async function generateAltText(base64Image) {
+    try {
+      const response = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: selectedModel.value,
-          prompt: "Write a concise description for this image suitable for use as alt text for social media. Include key visual elements, actions, and context, but keep it natural and engaging. Avoid starting with phrases like 'an image of' or 'a photo of'.",
-          images: [base64Data],
+          prompt: customPrompt.value || 'Describe this image in detail, suitable for use as alt text.',
+          images: [base64Image.split(',')[1]],
           stream: false,
-          options: {
-            temperature: 0.3
-          }
+          options: modelParams.value
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || `API error: ${response.status} ${response.statusText}`);
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.error || `API error: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      return {
+        response: data.response,
+        modelUsed: selectedModel.value
+      };
     } catch (error) {
-      console.error('Ollama API error:', error);
-      throw new Error(`Ollama API error: ${error.message}`);
+      logger.error('Failed to generate alt text:', error);
+      throw error;
     }
   }
 
@@ -154,19 +187,21 @@ export const useStore = defineStore('main', () => {
     
     // Save settings
     localStorage.setItem('font-family', selectedFont.value);
-    localStorage.setItem('font-size', baseFontSize.value.toString());
+    localStorage.setItem('base-font-size', baseFontSize.value.toString());
   }
 
-  function setFont(font) {
-    selectedFont.value = font;
+  function setFont(newFont) {
+    selectedFont.value = newFont;
+    localStorage.setItem('font-family', newFont);
+    document.documentElement.setAttribute('data-font', newFont);
     updateFontSettings();
   }
 
-  function setFontSize(size) {
-    if (size >= 12 && size <= 24) {
-      baseFontSize.value = size;
-      updateFontSettings();
-    }
+  function setFontSize(newSize) {
+    baseFontSize.value = newSize;
+    localStorage.setItem('base-font-size', newSize.toString());
+    document.documentElement.style.setProperty('--base-font-size', `${newSize}px`);
+    updateFontSettings();
   }
 
   function increaseFontSize() {
@@ -189,9 +224,24 @@ export const useStore = defineStore('main', () => {
     showStatusFeed.value = !showStatusFeed.value;
   }
 
+  function setTheme(newTheme) {
+    theme.value = newTheme;
+    localStorage.theme = newTheme;
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  }
+
   // Initialize font settings
   onMounted(() => {
     updateFontSettings();
+  });
+
+  // Initialize
+  onMounted(async () => {
+    try {
+      await detectModels();
+    } catch (error) {
+      logger.error('Failed to initialize models:', error);
+    }
   });
 
   return {
@@ -202,17 +252,25 @@ export const useStore = defineStore('main', () => {
     selectedProvider,
     apiUrl,
     modelStatus,
+    modelParams,
+    customPrompt,
+    detailedAnalysis,
+    theme,
     selectedFont,
     baseFontSize,
     showSettings,
     showStatusFeed,
+    availableModels,
     // Getters
     nextResultId,
+    isDarkMode,
     // Actions
     addResult,
     updateResult,
     removeResult,
     addFeedMessage,
+    detectModels,
+    setModel,
     generateAltText,
     setFont,
     setFontSize,
@@ -220,6 +278,7 @@ export const useStore = defineStore('main', () => {
     decreaseFontSize,
     toggleSettings,
     toggleStatusFeed,
+    setTheme,
     updateFontSettings
   };
 }); 

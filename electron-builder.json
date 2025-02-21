@@ -6,7 +6,15 @@
   },
   "files": [
     "dist/**/*",
-    "build/icons/**/*"
+    "build/icons/**/*",
+    "scripts/installer.js"
+  ],
+  "extraResources": [
+    {
+      "from": "scripts",
+      "to": "scripts",
+      "filter": ["installer.js"]
+    }
   ],
   "mac": {
     "icon": "build/icons/icon.icns",
@@ -15,7 +23,9 @@
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
     "darkModeSupport": true,
-    "arch": ["x64"]
+    "arch": ["x64", "arm64"],
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist"
   },
   "win": {
     "icon": "build/icons/icon.ico",
@@ -30,5 +40,13 @@
     "icon": "build/icons/icon.icns",
     "format": "ULFO",
     "writeUpdateInfo": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Alt Text AI",
+    "include": "build/installer.nsh"
   }
 } 

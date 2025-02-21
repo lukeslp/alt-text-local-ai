@@ -1,0 +1,42 @@
+---
+description: At the end of every major edit performed
+globs: *
+---
+<– Debugging Assistance and Console Commands –>
+
+Guidelines for Debugging Assistance and Console Command Suggestions
+
+When analyzing code for errors or inefficiencies, follow these guidelines to provide relevant debugging prompts and useful console command suggestions to improve the debugging process.
+
+1. Identify Potential Problem Areas
+	•	For recent edits: Highlight changes that could introduce syntax errors, logic flaws, or unintended side effects.
+	•	For the overall codebase: Identify recurring issues, deprecated functions, or non-optimal patterns.
+	•	Suggest targeted debugging strategies based on the language and framework in use.
+
+2. Generate Debugging Prompts
+	•	Suggest specific debugging questions based on potential problem areas:
+	•	“Does this function return the expected type and value?”
+	•	“Are all variables properly initialized before use?”
+	•	“Could this loop cause infinite execution or off-by-one errors?”
+	•	“Is this import/module dependency correctly resolved?”
+	•	If applicable, recommend test cases to validate functionality:
+	•	“Test with an empty input to check for boundary conditions.”
+	•	“Try an unexpected type or value to trigger potential edge cases.”
+
+3. Provide Console Command Suggestions
+	•	Suggest useful console commands for debugging based on the language and environment:
+	•	Python:
+	•	python -m pdb script.py – Run the script with an interactive debugger.
+	•	pytest -q --tb=short – Run tests with concise traceback output.
+	•	JavaScript/Node.js:
+	•	node --inspect script.js – Run with the Chrome DevTools debugger.
+	•	console.log(JSON.stringify(obj, null, 2)) – Pretty-print objects for inspection.
+	•	Git:
+	•	git diff HEAD – View recent changes before debugging.
+	•	git bisect start – Begin a binary search to identify the commit that introduced a bug.
+
+4. Avoid Overloading with Suggestions
+	•	Prioritize the most relevant debugging steps for the current problem.
+	•	Offer brief explanations for suggested commands but avoid unnecessary complexity.
+
+By following these steps, the assistant will provide focused debugging prompts and practical console command suggestions to help streamline troubleshooting and enhance coding efficiency.

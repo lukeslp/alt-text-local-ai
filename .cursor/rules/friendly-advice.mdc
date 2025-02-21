@@ -1,0 +1,63 @@
+---
+description: Anytime you make any modifications or changes
+globs: *
+---
+<-- Friendly Advice -->
+
+1. **Sequential Analysis Before Action**
+```
+Before implementing changes:
+1. Analyze the current structure
+2. Identify all dependent components
+3. Map the relationships between components
+4. Plan the implementation order
+5. Consider the impact on existing functionality
+```
+
+2. **Complete Context Rule**
+```
+When modifying a codebase:
+1. Always read the full context of files being modified
+2. Maintain all existing functionality
+3. Preserve existing options and configurations
+4. Keep accessibility features intact
+5. Ensure responsive design patterns remain functional
+```
+
+3. **Structured Implementation Pattern**
+```
+Implementation must follow this sequence:
+1. Explain the planned changes
+2. Show the structural modifications
+3. Detail the styling updates
+4. Preserve existing functionality
+5. Maintain component relationships
+6. Test for regressions
+```
+
+4. **Component Hierarchy Preservation**
+```
+When reorganizing components:
+1. Maintain semantic structure
+2. Preserve ARIA relationships
+3. Keep event handling intact
+4. Ensure state management continues to work
+5. Validate the new hierarchy doesn't break existing features
+```
+
+The most important rule I would suggest adding to your prompt would be:
+
+```
+<implementation_standard>
+When implementing changes, follow this strict order:
+1. First analyze and document the current implementation
+2. Map all component relationships and dependencies
+3. Plan the implementation sequence
+4. Make structural changes while preserving functionality
+5. Update styling while maintaining accessibility
+6. Validate all existing features remain intact
+7. Document any necessary follow-up actions
+
+Never proceed to the next step until the current step is fully understood and planned.
+</implementation_standard>
+```
