@@ -18,6 +18,7 @@ export const createApp = () => {
                 results: [],
                 dropzone: null,
                 nextId: 1,
+                availableModels: [],
                 modelStatus: {
                     loading: false,
                     error: null,
@@ -84,13 +85,16 @@ export const createApp = () => {
             async checkModelAvailability() {
                 try {
                     this.modelStatus.loading = true;
-                    const response = await fetch(`${this.apiUrl}/api/tags`);
+                    const endpoint = `${this.apiUrl}/api/tags`;
+                    logger.debug('Sending GET request to endpoint', { endpoint });
+                    const response = await fetch(endpoint);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
                     const data = await response.json();
+                    this.availableModels = data.models;
                     
                     // Check if LLaVA-Phi3 is available
                     const isLLaVAAvailable = data.models.some(m => 
@@ -140,18 +144,18 @@ export const createApp = () => {
                     
                     const prompt = this.customPrompt ? `${this.customPrompt}\n\n${context}` : defaultPrompt;
 
-                    const response = await fetch(`${this.apiUrl}/api/generate`, {
+                    const endpoint = `${this.apiUrl}/api/generate`;
+                    const payload = {
+                        model: this.customModel || 'llava-phi3',
+                        prompt: prompt,
+                        images: [base64Data],
+                        stream: false
+                    };
+                    logger.debug('Sending POST request to endpoint with payload', { endpoint, payload });
+                    const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            model: this.customModel || 'llava-phi3',
-                            prompt: prompt,
-                            images: [base64Data],
-                            stream: false,
-                            options: {
-                                temperature: 0.2
-                            }
-                        })
+                        body: JSON.stringify(payload)
                     });
 
                     if (!response.ok) {
@@ -517,6 +521,17 @@ export const createApp = () => {
                     this.baseFontSize -= 2;
                     this.updateFontSettings();
                 }
+            },
+            formatSize(size) {
+                if (!size || isNaN(size)) return '';
+                const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                let i = 0;
+                let val = size;
+                while (val >= 1024 && i < units.length - 1) {
+                    val /= 1024;
+                    i++;
+                }
+                return val.toFixed(2) + ' ' + units[i];
             }
         },
         watch: {
@@ -548,6 +563,18 @@ export const createApp = () => {
             }
         }
     });
+
+    app.config.globalProperties.formatSize = function(size) {
+        if (!size || isNaN(size)) return '';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let i = 0;
+        let val = size;
+        while (val >= 1024 && i < units.length - 1) {
+            val /= 1024;
+            i++;
+        }
+        return val.toFixed(2) + ' ' + units[i];
+    };
 
     return app;
 }; 

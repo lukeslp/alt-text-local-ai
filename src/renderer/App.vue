@@ -48,24 +48,7 @@
                     <!-- Model Selection -->
                     <CollapsiblePanel title="Model Selection" :initially-open="true">
                       <div class="space-y-4 p-6">
-                        <select v-model="selectedModel"
-                                class="w-full p-3 border-2 border-border-light dark:border-border-dark rounded-lg 
-                                       bg-surface-light dark:bg-surface-dark
-                                       focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
-                                       transition duration-300">
-                          <option value="llava-phi3">LLaVA-Phi3 (Default)</option>
-                          <option value="custom">Custom Model</option>
-                        </select>
-                        
-                        <div v-if="selectedModel === 'custom'" class="mt-4">
-                          <input v-model="customModel"
-                                 type="text"
-                                 placeholder="Enter custom model name"
-                                 class="w-full p-3 border-2 border-border-light dark:border-border-dark rounded-lg 
-                                        bg-surface-light dark:bg-surface-dark
-                                        focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
-                                        transition duration-300" />
-                        </div>
+                        <ModelSelector />
                       </div>
                     </CollapsiblePanel>
 
@@ -177,6 +160,7 @@ import rough from 'roughjs'
 import CollapsiblePanel from './components/CollapsiblePanel.vue'
 import SetupWizard from './components/SetupWizard.vue'
 import OllamaManager from './components/OllamaManager.vue'
+import ModelSelector from './components/ModelSelector.vue'
 
 export default {
   name: 'App',
@@ -184,7 +168,8 @@ export default {
     CollapsiblePanel,
     TransitionGroup,
     SetupWizard,
-    OllamaManager
+    OllamaManager,
+    ModelSelector
   },
   setup() {
     const apiUrl = ref('http://localhost:11434')

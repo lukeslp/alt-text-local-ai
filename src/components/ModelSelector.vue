@@ -1,99 +1,227 @@
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold">Model Selection</h3>
-      <button 
-        @click="refreshModels" 
-        class="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-        :class="{ 'animate-spin': store.modelStatus.isDetecting }"
-        :disabled="store.modelStatus.isDetecting"
-        :aria-busy="store.modelStatus.isDetecting"
-        aria-label="Refresh models list"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </button>
-    </div>
-
-    <div v-if="store.modelStatus.error" class="text-red-600 dark:text-red-400 text-sm mb-2 p-2 bg-red-100 dark:bg-red-900 rounded">
-      {{ store.modelStatus.error }}
-    </div>
-
-    <div class="space-y-2">
-      <label for="model-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Select Vision Model
+  <div class="model-selector">
+    <!-- Model Selection Interface -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-2"
+             :class="store.theme === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+        Model Selection
       </label>
-      <div class="relative">
-        <select
-          id="model-select"
-          v-model="selectedModelName"
-          class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
-          :disabled="store.modelStatus.isDetecting"
-          aria-label="Select AI model"
-        >
-          <option v-for="model in visionModels" :key="model.name" :value="model.name">
-            {{ model.name }} ({{ formatSize(model.size) }})
-          </option>
-        </select>
+
+      <!-- Current Model Display -->
+      <div class="mb-4 p-3 rounded-lg"
+           :class="store.theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'">
+        <h4 class="text-sm font-medium mb-1"
+            :class="store.theme === 'dark' ? 'text-gray-300' : 'text-gray-700'">
+          Current Model
+        </h4>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-bold"
+               :class="store.theme === 'dark' ? 'text-gray-200' : 'text-gray-900'">
+              {{ store.selectedModel }}
+            </p>
+            <p class="text-xs"
+               :class="store.theme === 'dark' ? 'text-gray-400' : 'text-gray-600'">
+              {{ getCurrentModelDescription }}
+            </p>
+          </div>
+          <button @click="showModelBrowser = !showModelBrowser"
+                  class="px-3 py-1 text-sm rounded-md transition-colors"
+                  :class="store.theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'">
+            {{ showModelBrowser ? 'Hide' : 'Browse' }}
+          </button>
+        </div>
       </div>
 
-      <div v-if="!hasVisionModel" class="mt-2 text-yellow-600 dark:text-yellow-400 text-sm p-2 bg-yellow-100 dark:bg-yellow-900 rounded">
-        Warning: No vision-capable models detected. Please install llava, llava-phi3, or bakllava.
+      <!-- Model Browser -->
+      <div v-if="showModelBrowser" class="model-browser">
+        <!-- Controls -->
+        <div class="mb-4 space-y-3">
+          <!-- Sort Controls -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm"
+                   :class="store.theme === 'dark' ? 'text-gray-400' : 'text-gray-600'">
+              Sort by:
+            </label>
+            <select v-model="sortBy"
+                    class="text-sm px-2 py-1 rounded"
+                    :class="store.theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-white text-gray-700'">
+              <option value="name">Name</option>
+              <option value="context_length">Context Length</option>
+              <option value="capabilities">Capabilities</option>
+            </select>
+            <button @click="sortReverse = !sortReverse"
+                    class="p-1 rounded"
+                    :class="store.theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'">
+              <span class="transform inline-block" :class="{ 'rotate-180': sortReverse }">↑</span>
+            </button>
+          </div>
+
+          <!-- Filter Controls -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm"
+                   :class="store.theme === 'dark' ? 'text-gray-400' : 'text-gray-600'">
+              Filter:
+            </label>
+            <select v-model="generationFilter"
+                    class="text-sm px-2 py-1 rounded"
+                    :class="store.theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-white text-gray-700'">
+              <option value="">All Generations</option>
+              <option value="phi3">Phi3</option>
+              <option value="llava">LLaVA</option>
+              <option value="bakllava">BakLLaVA</option>
+            </select>
+            <select v-model="capabilityFilter"
+                    class="text-sm px-2 py-1 rounded"
+                    :class="store.theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-white text-gray-700'">
+              <option value="">All Capabilities</option>
+              <option value="text">Text</option>
+              <option value="vision">Vision</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Model List -->
+        <div class="space-y-2 max-h-60 overflow-y-auto">
+          <div v-for="model in displayedModels"
+               :key="model.name"
+               class="p-3 rounded-lg cursor-pointer transition-colors"
+               :class="[
+                 store.theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
+                 model.name === store.selectedModel ? 
+                   (store.theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100') : 
+                   (store.theme === 'dark' ? 'bg-gray-800' : 'bg-white')
+               ]"
+               @click="selectModel(model.name)">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium"
+                   :class="store.theme === 'dark' ? 'text-gray-200' : 'text-gray-900'">
+                  {{ model.name }}
+                </p>
+                <p class="text-xs"
+                   :class="store.theme === 'dark' ? 'text-gray-400' : 'text-gray-600'">
+                  {{ model.description }}
+                </p>
+              </div>
+              <div class="flex space-x-1">
+                <span v-for="cap in model.capabilities"
+                      :key="cap"
+                      class="px-1.5 py-0.5 text-xs rounded"
+                      :class="store.theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'">
+                  {{ cap }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center">
+          <button @click="prevPage"
+                  :disabled="currentPage === 1"
+                  class="px-3 py-1 text-sm rounded disabled:opacity-50"
+                  :class="store.theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700'">
+            Previous
+          </button>
+          <span class="text-sm"
+                :class="store.theme === 'dark' ? 'text-gray-400' : 'text-gray-600'">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button @click="nextPage"
+                  :disabled="currentPage >= totalPages"
+                  class="px-3 py-1 text-sm rounded disabled:opacity-50"
+                  :class="store.theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700'">
+            Next
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from '../store';
-import { logger } from '../utils/logger';
 
 const store = useStore();
 
-const selectedModelName = computed({
-  get: () => store.selectedModel,
-  set: async (value) => {
-    try {
-      await store.setModel(value);
-    } catch (error) {
-      logger.error('Failed to set model:', error);
-    }
+// Local state
+const showModelBrowser = ref(false);
+const sortBy = ref('name');
+const sortReverse = ref(false);
+const generationFilter = ref('');
+const capabilityFilter = ref('');
+const currentPage = ref(1);
+const pageSize = ref(5);
+
+// Computed properties
+const filteredModels = computed(() => {
+  let models = [...store.availableModels];
+  
+  // Apply generation filter
+  if (generationFilter.value) {
+    models = store.filterModelsByGeneration(models, generationFilter.value);
   }
+  
+  // Apply capability filter
+  if (capabilityFilter.value) {
+    models = store.filterModelsByCapability(models, capabilityFilter.value);
+  }
+  
+  // Apply sorting
+  return store.sortModels(models, sortBy.value, sortReverse.value);
 });
 
-const visionModels = computed(() => {
-  const visionModelNames = ['llava', 'llava-phi3', 'bakllava'];
-  return store.availableModels.filter(model => 
-    visionModelNames.some(vm => model.name.toLowerCase().includes(vm))
-  );
+const totalPages = computed(() => {
+  return Math.ceil(filteredModels.value.length / pageSize.value);
 });
 
-const hasVisionModel = computed(() => visionModels.value.length > 0);
+const displayedModels = computed(() => {
+  return store.getPagedModels(filteredModels.value, currentPage.value, pageSize.value);
+});
 
-// Format file size
-function formatSize(bytes) {
-  if (!bytes) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+const getCurrentModelDescription = computed(() => {
+  const model = store.availableModels.find(m => m.name === store.selectedModel);
+  return model?.description || 'Loading model information...';
+});
+
+// Methods
+function selectModel(modelName) {
+  store.setModel(modelName);
 }
 
-// Refresh models list
-async function refreshModels() {
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+// Watch for filter changes to reset pagination
+watch([generationFilter, capabilityFilter], () => {
+  currentPage.value = 1;
+});
+
+// Initialize
+onMounted(async () => {
   try {
     await store.detectModels();
   } catch (error) {
-    logger.error('Failed to refresh models:', error);
-  }
-}
-
-// Initial fetch
-onMounted(async () => {
-  if (store.availableModels.length === 0) {
-    await refreshModels();
+    console.error('Failed to detect models:', error);
   }
 });
-</script> 
+</script>
+
+<style scoped>
+.model-browser {
+  @apply rounded-lg border p-4 mt-2;
+  border-color: v-bind(store.theme === 'dark' ? '#374151' : '#E5E7EB');
+  background-color: v-bind(store.theme === 'dark' ? '#1F2937' : '#FFFFFF');
+}
+</style> 

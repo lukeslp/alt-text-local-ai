@@ -11,7 +11,6 @@ export const useStore = defineStore('main', () => {
   const nextId = ref(1);
   const selectedModel = ref('llava-phi3');
   const availableModels = ref([]);
-  const selectedProvider = ref('local');
   const apiUrl = ref('http://localhost:11434');
   const modelStatus = ref({
     loading: false,
@@ -84,12 +83,21 @@ export const useStore = defineStore('main', () => {
       }
 
       const data = await response.json();
-      availableModels.value = data.models || [];
+      const models = data.models || [];
+
+      // Enhance model data with additional information
+      availableModels.value = models.map(model => ({
+        ...model,
+        capabilities: determineModelCapabilities(model.name),
+        description: generateModelDescription(model.name),
+        generation: determineModelGeneration(model.name),
+        version: determineModelVersion(model.name),
+        context_length: determineContextLength(model.name)
+      }));
 
       // Check if current model exists in available models
       const currentModelExists = availableModels.value.some(m => m.name === selectedModel.value);
       
-      // If current model doesn't exist, select first available model with vision capabilities
       if (!currentModelExists) {
         const visionModels = ['llava', 'llava-phi3', 'bakllava'];
         const firstAvailableVisionModel = availableModels.value.find(m => 
@@ -113,6 +121,85 @@ export const useStore = defineStore('main', () => {
     } finally {
       modelStatus.value.isDetecting = false;
     }
+  }
+
+  // Helper functions for model metadata
+  function determineModelCapabilities(modelName) {
+    const capabilities = ['text'];
+    const name = modelName.toLowerCase();
+    
+    if (name.includes('llava') || name.includes('bakllava')) {
+      capabilities.push('vision');
+    }
+    
+    return capabilities;
+  }
+
+  function generateModelDescription(modelName) {
+    const name = modelName.toLowerCase();
+    let description = 'Ollama model';
+    
+    if (name.includes('llava-phi3')) {
+      description = 'LLaVA-Phi3 vision-language model';
+    } else if (name.includes('llava')) {
+      description = 'LLaVA vision-language model';
+    } else if (name.includes('bakllava')) {
+      description = 'BakLLaVA vision-language model';
+    }
+    
+    return description;
+  }
+
+  function determineModelGeneration(modelName) {
+    const name = modelName.toLowerCase();
+    if (name.includes('phi3')) return 'phi3';
+    if (name.includes('llava')) return 'llava';
+    if (name.includes('bakllava')) return 'bakllava';
+    return 'other';
+  }
+
+  function determineModelVersion(modelName) {
+    const parts = modelName.split(':');
+    return parts.length > 1 ? parts[1] : 'latest';
+  }
+
+  function determineContextLength(modelName) {
+    // Default context lengths - these could be made more accurate
+    const name = modelName.toLowerCase();
+    if (name.includes('phi3')) return 2048;
+    if (name.includes('llava')) return 4096;
+    return 2048;
+  }
+
+  // Model filtering and sorting functions
+  function filterModelsByGeneration(models, generation) {
+    if (!generation) return models;
+    return models.filter(m => m.generation === generation);
+  }
+
+  function filterModelsByCapability(models, capability) {
+    if (!capability) return models;
+    return models.filter(m => m.capabilities.includes(capability));
+  }
+
+  function sortModels(models, sortBy = 'name', reverse = false) {
+    const sorted = [...models].sort((a, b) => {
+      switch (sortBy) {
+        case 'context_length':
+          return a.context_length - b.context_length;
+        case 'capabilities':
+          return b.capabilities.length - a.capabilities.length;
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    return reverse ? sorted.reverse() : sorted;
+  }
+
+  function getPagedModels(models, page = 1, pageSize = 5) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return models.slice(start, end);
   }
 
   async function setModel(modelName) {
@@ -249,7 +336,6 @@ export const useStore = defineStore('main', () => {
     results,
     feedMessages,
     selectedModel,
-    selectedProvider,
     apiUrl,
     modelStatus,
     modelParams,
@@ -279,6 +365,11 @@ export const useStore = defineStore('main', () => {
     toggleSettings,
     toggleStatusFeed,
     setTheme,
-    updateFontSettings
+    updateFontSettings,
+    // Model management functions
+    filterModelsByGeneration,
+    filterModelsByCapability,
+    sortModels,
+    getPagedModels
   };
 }); 
