@@ -1,3 +1,10 @@
+/**
+ * Resize an image to a maximum size and return a base64 string.
+ *
+ * @param {File} file - image file
+ * @param {number} [maxSize=1024] - longest dimension in pixels
+ * @returns {Promise<string>} base64 image
+ */
 export async function resizeImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     try {
@@ -45,6 +52,12 @@ export async function resizeImage(file, maxSize = 1024) {
   });
 }
 
+/**
+ * Tidy model output for human-friendly alt text.
+ *
+ * @param {string} description
+ * @returns {string}
+ */
 export function cleanDescription(description) {
   description = description.trim();
   const prefixes = ['an image of ', 'a photo of ', 'this image shows ', 'the image shows '];

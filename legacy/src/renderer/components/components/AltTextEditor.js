@@ -1,3 +1,4 @@
+// DEPRECATED – archived by Codex 2025-06-07. Safe to delete after 90 days.
 export const AltTextEditor = {
     name: 'AltTextEditor',
     template: `

@@ -1,3 +1,4 @@
+# DEPRECATED – archived by Codex 2025-06-07. Safe to delete after 90 days.
 aiofiles==24.1.0
 aiogram==3.16.0
 aiohappyeyeballs==2.4.4

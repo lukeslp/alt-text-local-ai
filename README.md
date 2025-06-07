@@ -47,3 +47,14 @@ ISC License - See LICENSE file for details
 
 ## Author
 Lucas Steuber (luke@actuallyusefulai.com)
+
+## Refactor Notes
+This version cleans up old web-only files and documents the code with handy JSDoc comments. The app itself works the same, but it's now easier to maintain and understand.
+
+## Credits & Support
+Want to keep this project going? Check out these links:
+- [Tip Jar](https://usefulai.lemonsqueezy.com/buy/bf6ce1bd-85f5-4a09-ba10-191a670f74af)
+- [Substack](https://assisted.site/)
+- [GitHub](https://github.com/lukeslp)
+- [Bluesky](https://bsky.app/profile/lukeslp)
+- [LinkedIn](https://www.linkedin.com/in/lukesteuber/)

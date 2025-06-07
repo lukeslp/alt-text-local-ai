@@ -2,6 +2,10 @@ import { ref } from 'vue';
 import { useStore } from '../store';
 import { resizeImage } from '../utils/imageUtils';
 
+/**
+ * Provide methods to resize images and generate alt text.
+ * @returns {object}
+ */
 export function useImageProcessing() {
   const store = useStore();
   const processing = ref(false);

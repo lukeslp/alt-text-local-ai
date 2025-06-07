@@ -4,6 +4,10 @@ import { HF_TOKEN, HF_API_URL } from '../config/constants';
 import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 
+/**
+ * Pinia store managing image results and model selection.
+ * @type {import('pinia').Store}
+ */
 export const useStore = defineStore('main', () => {
   // State
   const results = ref([]);
