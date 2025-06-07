@@ -1,3 +1,4 @@
+// DEPRECATED – archived by Codex 2025-06-07. Safe to delete after 90 days.
 export const AltTextEditor = {
     template: `
         <div class="alt-text-editor p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">

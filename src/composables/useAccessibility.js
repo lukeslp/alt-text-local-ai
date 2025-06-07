@@ -1,6 +1,15 @@
+/**
+ * Manage global accessibility preferences.
+ *
+ * @returns {object} Reactive utilities for accessibility.
+ */
 import { ref } from 'vue';
 import { useStore } from '../store';
 
+/**
+ * Create reactive accessibility state handlers.
+ * @returns {object}
+ */
 export function useAccessibility() {
   const store = useStore();
   

@@ -1,3 +1,8 @@
+/**
+ * Utility class for installing and managing Ollama.
+ *
+ * Methods wrap platform-specific installers and helper tasks.
+ */
 const { exec, spawn } = require('child_process');
 const https = require('https');
 const fs = require('fs');
@@ -6,6 +11,7 @@ const path = require('path');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 
+/** @class Installer */
 class Installer {
   constructor() {
     this.platform = os.platform();
@@ -14,6 +20,7 @@ class Installer {
     this.isLinux = this.platform === 'linux';
   }
 
+    /** Install Ollama on the host platform. */
   async installOllama() {
     console.log('Installing Ollama...');
     
@@ -55,6 +62,7 @@ class Installer {
     }
   }
 
+  /** Fetch install instructions from ollama.ai. */
   async getOllamaInstallScript() {
     return new Promise((resolve, reject) => {
       https.get('https://ollama.ai/install.sh', (res) => {
@@ -66,6 +74,7 @@ class Installer {
     });
   }
 
+  /** Download a file using HTTPS. */
   async downloadFile(url, dest) {
     return new Promise((resolve, reject) => {
       const file = fs.createWriteStream(dest);
@@ -81,6 +90,7 @@ class Installer {
     });
   }
 
+    /** Pull a model with progress updates. */
   async pullModel(modelName, progressCallback) {
     console.log(`Pulling model: ${modelName}`);
     
@@ -116,6 +126,7 @@ class Installer {
     });
   }
 
+    /** Start the local Ollama service. */
   async startOllamaServer() {
     console.log('Starting Ollama server...');
     
@@ -128,6 +139,7 @@ class Installer {
     return server;
   }
 
+    /** Verify Ollama is installed and reachable. */
   async checkOllamaInstallation() {
     try {
       const ollamaCmd = this.isWindows ? 'ollama.exe' : 'ollama';

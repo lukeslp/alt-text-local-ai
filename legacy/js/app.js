@@ -1,3 +1,4 @@
+// DEPRECATED – archived by Codex 2025-06-07. Safe to delete after 90 days.
 import { logger } from './logger.js';
 import { MODEL_GROUPS } from './models.js';
 import { ThemeManager } from './theme.js';

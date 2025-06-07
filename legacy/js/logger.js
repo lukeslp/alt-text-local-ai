@@ -1,3 +1,4 @@
+// DEPRECATED – archived by Codex 2025-06-07. Safe to delete after 90 days.
 const LOG_LEVELS = {
     debug: { color: '#8B8B8B', emoji: '🔍' },
     info: { color: '#5558BC', emoji: 'ℹ️' },
