@@ -1,5 +1,9 @@
 # Alt Text AI
 
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active-success)
+
 An AI-powered tool for generating high-quality alt text for images using local models.
 
 ## Installation
@@ -43,7 +47,10 @@ For issues or feature requests, please visit:
 https://github.com/lukeslp/alt-text-generator/issues
 
 ## License
-ISC License - See LICENSE file for details
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Author
-Lucas Steuber (luke@actuallyusefulai.com)
+
+**Luke Steuber**  
+[dr.eamer.dev](https://dr.eamer.dev)
