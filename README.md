@@ -1,10 +1,26 @@
 # Alt Text AI
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-active-success)
-![Electron](https://img.shields.io/badge/electron-desktop-blue)
+![Electron](https://img.shields.io/badge/built_with-Electron-47848F?logo=electron&logoColor=white)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-Generates descriptive alt text for images using local vision models. Everything runs on your machine — no images leave your device.
+A desktop app that generates descriptive alt text for images using local vision models. Drop an image in, get a description back. Everything runs on your machine — no images leave your device, no API key required for local models.
+
+---
+
+## Features
+
+- Drag-and-drop or click-to-select images (PNG, JPG, GIF, WebP)
+- Generate descriptions using Ollama vision models: `llava`, `llava-phi3`, `bakllava`
+- Optionally use Hugging Face hosted models with your own token
+- Resize and optimize images before processing (canvas-based, no server round-trip)
+- Copy generated alt text with one click
+- Edit or refine descriptions inline before copying
+- Light and dark mode
+- Keyboard-accessible interface with ARIA live region announcements
+- Built-in Ollama install and model-pull flow (macOS/Linux; see Windows note below)
+
+---
 
 ## Dev Setup
 
@@ -12,61 +28,107 @@ Generates descriptive alt text for images using local vision models. Everything 
 git clone https://github.com/lukeslp/alt-text-local-ai
 cd alt-text-local-ai
 pnpm install
-
-# Optional: add a Hugging Face token for HF-hosted models
-cp .env.example .env.local
-# edit .env.local and set VITE_HF_TOKEN=hf_...
-
-pnpm start   # launches Electron + Vite dev server
 ```
 
-**Windows note:** Automated Ollama install isn't supported yet. When you click "Install Ollama" on Windows, the app opens the [Ollama download page](https://ollama.com/download/windows) in your browser. Install it manually, then restart the app.
+If you want to use Hugging Face hosted models, create a `.env.local` file:
 
-## Installation
+```bash
+cp .env.example .env.local
+# edit .env.local and set VITE_HF_TOKEN=hf_...
+```
+
+Then start the app:
+
+```bash
+pnpm start
+```
+
+This launches the Vite dev server on port 5173 and opens Electron pointed at it. Hot reloading works in the renderer; changes to `src/main/main.js` require a restart.
+
+### Requirements
+
+- Node.js + pnpm
+- [Ollama](https://ollama.com) installed and running (or a Hugging Face token for hosted models)
+- macOS 10.15+ or Windows 10+
+- 8 GB RAM recommended for local models
+
+---
+
+## Windows Note
+
+Automated Ollama install is not supported on Windows yet. When you click "Install Ollama" in the app, it opens the [Ollama download page](https://ollama.com/download/windows) in your browser. Install it manually, then restart the app and it will detect the running server.
+
+---
+
+## Building
+
+```bash
+pnpm build                     # Vite production build only
+pnpm run electron:build:mac    # macOS DMG (x64 + arm64)
+pnpm run electron:build:win    # Windows NSIS installer
+pnpm run electron:build:linux  # AppImage + deb
+```
+
+Built packages land in `dist_electron/`.
+
+---
+
+## Installing a Release
 
 ### macOS
-1. Download the latest `Alt Text AI.dmg` from the releases page
-2. Open the DMG file
-3. Drag Alt Text AI to your Applications folder
-4. Right-click the app and select "Open" (required only on first launch)
+1. Download the `.dmg` from the releases page
+2. Open the DMG and drag Alt Text AI to Applications
+3. Right-click and choose Open on first launch (Gatekeeper prompt)
 
 ### Windows
-1. Download the latest Windows installer from the releases page
-2. Run the installer
-3. Follow the installation prompts
+1. Download the Windows installer from the releases page
+2. Run it and follow the prompts
 
-## Features
-- Generate descriptive alt text for any image
-- Runs local vision models via Ollama for privacy and speed
-- Supports multiple image formats (PNG, JPG, GIF, WebP)
-- Customizable output formats
-- Dark/light mode support
+---
 
-## Usage
-1. Launch Alt Text AI
-2. Drop an image into the app or click to select one
-3. The AI will automatically generate alt text
-4. Edit or refine the generated text as needed
-5. Copy the alt text to use in your projects
+## Architecture
 
-## Requirements
-- macOS 10.15 or later
-- Windows 10 or later
-- 8GB RAM recommended
-- Internet connection (for initial model download)
+Three-process Electron model:
+
+| Layer | File | Responsibility |
+|-------|------|---------------|
+| Main process | `src/main/main.js` | BrowserWindow, IPC handlers, Ollama lifecycle via `scripts/installer.js` |
+| Preload bridge | `src/preload/preload.js` | Exposes `window.electron` to the renderer via `contextBridge` |
+| Renderer | `src/App.vue` + `src/components/` | Vue 3 + Pinia SPA, communicates with main only through the preload API |
+
+State is managed in a single Pinia store (`src/store/index.js`) holding the results list, selected model, feed messages, and theme settings.
+
+---
+
+## Environment Variables
+
+| Variable | Purpose | Required |
+|----------|---------|---------|
+| `VITE_HF_TOKEN` | Hugging Face API token for hosted models | No |
+
+Set in `.env.local` (gitignored). See `.env.example` for the template.
+
+---
 
 ## Privacy
-All image processing is done locally on your machine. No images are uploaded to external servers.
 
-## Support
-For issues or feature requests, please visit:
-https://github.com/lukeslp/alt-text-generator/issues
+All local model inference runs through Ollama on `localhost:11434`. No image data is sent anywhere. If you use a Hugging Face model, your images go to the HF Inference API — that's the only case where data leaves the device.
 
-## License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Links
+
+- [View on GitHub](https://github.com/lukeslp/alt-text-local-ai)
+- [Model on Ollama](https://ollama.com/coolhand/impossible_alt)
+- [Report an issue](https://github.com/lukeslp/alt-text-generator/issues)
+
+---
 
 ## Author
 
-**Luke Steuber**  
-[dr.eamer.dev](https://dr.eamer.dev)
+**Luke Steuber**
+[lukesteuber.com](https://lukesteuber.com) — [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.

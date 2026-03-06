@@ -2,7 +2,7 @@
   "name": "alt-text-ai",
   "productName": "Alt Text AI",
   "version": "1.0.0",
-  "description": "AI-powered alt text generation for images using local models",
+  "description": "Generate alt text for images using local vision models via Ollama",
   "main": "src/main/main.js",
   "scripts": {
     "start": "concurrently \"cross-env ELECTRON=true vite dev\" \"wait-on tcp:5173 && electron .\"",
