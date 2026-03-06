@@ -30,3 +30,7 @@ yarn-error.log*
 # Electron build artifacts
 out/
 .DS_Store
+
+# Local dev / agent artifacts
+CLAUDE.md
+.aider*
