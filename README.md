@@ -1,10 +1,26 @@
 # Alt Text AI
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active-success)
+![Electron](https://img.shields.io/badge/electron-desktop-blue)
 
-An AI-powered tool for generating high-quality alt text for images using local models.
+Generates descriptive alt text for images using local vision models. Everything runs on your machine — no images leave your device.
+
+## Dev Setup
+
+```bash
+git clone https://github.com/lukeslp/alt-text-local-ai
+cd alt-text-local-ai
+pnpm install
+
+# Optional: add a Hugging Face token for HF-hosted models
+cp .env.example .env.local
+# edit .env.local and set VITE_HF_TOKEN=hf_...
+
+pnpm start   # launches Electron + Vite dev server
+```
+
+**Windows note:** Automated Ollama install isn't supported yet. When you click "Install Ollama" on Windows, the app opens the [Ollama download page](https://ollama.com/download/windows) in your browser. Install it manually, then restart the app.
 
 ## Installation
 
@@ -21,7 +37,7 @@ An AI-powered tool for generating high-quality alt text for images using local m
 
 ## Features
 - Generate descriptive alt text for any image
-- Uses local AI models for privacy and speed
+- Runs local vision models via Ollama for privacy and speed
 - Supports multiple image formats (PNG, JPG, GIF, WebP)
 - Customizable output formats
 - Dark/light mode support

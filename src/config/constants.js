@@ -1,4 +1,4 @@
-export const HF_TOKEN = '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';
+export const HF_TOKEN = import.meta.env.VITE_HF_TOKEN || '';
 export const HF_API_URL = 'https://api-inference.huggingface.co/models';
 
 export const MODEL_GROUPS = {

@@ -1,124 +1,13 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 const isDev = !app.isPackaged
-const { exec, spawn } = require('child_process')
-const https = require('https')
-const fs = require('fs')
+const { exec } = require('child_process')
 const os = require('os')
 const Installer = require('../../scripts/installer')
 
 let mainWindow
 let ollamaProcess
 let installer
-
-const getOllamaInstallScript = () => {
-  return new Promise((resolve, reject) => {
-    https.get('https://ollama.ai/install.sh', (res) => {
-      let data = ''
-      res.on('data', (chunk) => {
-        data += chunk
-      })
-      res.on('end', () => {
-        resolve(data)
-      })
-    }).on('error', (err) => {
-      reject(err)
-    })
-  })
-}
-
-const installOllama = async () => {
-  const platform = os.platform()
-  
-  if (platform === 'darwin') {
-    const script = await getOllamaInstallScript()
-    const tempPath = path.join(os.tmpdir(), 'ollama-install.sh')
-    
-    fs.writeFileSync(tempPath, script)
-    fs.chmodSync(tempPath, '755')
-    
-    try {
-      // Install Ollama
-      await new Promise((resolve, reject) => {
-        exec(`sh ${tempPath}`, (error, stdout, stderr) => {
-          if (error) {
-            reject(error)
-            return
-          }
-          resolve(stdout)
-        })
-      })
-
-      // Start the server
-      await startOllamaServer()
-      
-      // Wait for server to be ready
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Pull the default model
-      await pullModel('llava-phi3')
-      
-      return true
-    } catch (error) {
-      throw error
-    }
-  } else if (platform === 'win32') {
-    throw new Error('Windows installation not yet implemented')
-  } else {
-    throw new Error('Unsupported platform')
-  }
-}
-
-const startOllamaServer = () => {
-  return new Promise((resolve, reject) => {
-    const platform = os.platform()
-    const command = platform === 'win32' ? 'ollama.exe' : 'ollama'
-    
-    ollamaProcess = spawn(command, ['serve'])
-    
-    ollamaProcess.stdout.on('data', (data) => {
-      console.log(`Ollama: ${data}`)
-      if (data.toString().includes('Listening')) {
-        resolve()
-      }
-    })
-    
-    ollamaProcess.stderr.on('data', (data) => {
-      console.error(`Ollama Error: ${data}`)
-    })
-    
-    ollamaProcess.on('error', (error) => {
-      reject(error)
-    })
-  })
-}
-
-const pullModel = (modelName) => {
-  return new Promise((resolve, reject) => {
-    const process = spawn('ollama', ['pull', modelName])
-    
-    process.stdout.on('data', (data) => {
-      const output = data.toString()
-      const match = output.match(/([0-9.]+)%/)
-      if (match) {
-        const progress = parseFloat(match[1])
-        mainWindow.webContents.send('model-pull-progress', progress)
-      }
-    })
-    
-    process.stderr.on('data', (data) => {
-      console.error(`Model Pull Error: ${data}`)
-    })
-    
-    process.on('close', (code) => {
-      if (code === 0) {
-        resolve()
-      } else {
-        reject(new Error(`Model pull failed with code ${code}`))
-      }
-    })
-  })
-}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -155,11 +44,15 @@ ipcMain.handle('install-ollama', async () => {
   try {
     installer = installer || new Installer();
     const isInstalled = await installer.checkOllamaInstallation();
-    
+
     if (!isInstalled) {
+      if (process.platform === 'win32') {
+        await shell.openExternal('https://ollama.com/download/windows');
+        return { needsManualInstall: true };
+      }
       await installer.installOllama();
     }
-    
+
     return true;
   } catch (error) {
     console.error('Failed to install Ollama:', error);

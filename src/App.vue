@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { TransitionGroup } from 'vue';
 import { useStore } from './store';
 import ImageUploader from './components/ImageUploader.vue';

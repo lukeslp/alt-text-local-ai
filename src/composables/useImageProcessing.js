@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useStore } from '../store';
-import { resizeImage } from '../utils/imageUtils';
+import { resizeImage, cleanDescription } from '../utils/imageUtils';
 
 export function useImageProcessing() {
   const store = useStore();
@@ -41,7 +41,7 @@ export function useImageProcessing() {
       const response = await store.generateAltText(result.image);
       
       // Update result
-      result.altText = store.cleanDescription(response.response);
+      result.altText = cleanDescription(response.response);
       result.processing = false;
       
       // Force store update

@@ -3,10 +3,11 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electron', {
   installOllama: () => ipcRenderer.invoke('install-ollama'),
   pullModel: (modelName, progressCallback) => {
-    ipcRenderer.on('model-pull-progress', (event, progress) => {
-      progressCallback(progress)
-    })
-    return ipcRenderer.invoke('pull-model', modelName)
+    const listener = (event, progress) => progressCallback(progress);
+    ipcRenderer.on('model-pull-progress', listener);
+    return ipcRenderer.invoke('pull-model', modelName).finally(() => {
+      ipcRenderer.removeListener('model-pull-progress', listener);
+    });
   },
   startOllamaServer: () => ipcRenderer.invoke('start-ollama-server'),
   checkOllamaStatus: () => ipcRenderer.invoke('check-ollama-status'),
