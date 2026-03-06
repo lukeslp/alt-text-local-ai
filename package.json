@@ -132,16 +132,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lukeslp/alt-text-generator.git"
+    "url": "git+https://github.com/lukeslp/alt-text-local-ai.git"
   },
-  "keywords": [],
+  "keywords": ["alt-text", "accessibility", "a11y", "electron", "ollama", "vision"],
   "author": {
-    "name": "Lucas Steuber",
-    "email": "luke@actuallyusefulai.com"
+    "name": "Luke Steuber",
+    "email": "luke@lukesteuber.com"
   },
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lukeslp/alt-text-generator/issues"
+    "url": "https://github.com/lukeslp/alt-text-local-ai/issues"
   },
-  "homepage": "https://github.com/lukeslp/alt-text-generator#readme"
+  "homepage": "https://github.com/lukeslp/alt-text-local-ai#readme"
 }
