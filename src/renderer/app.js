@@ -10,7 +10,7 @@ import 'floating-vue/dist/style.css';
 import FloatingVue from 'floating-vue';
 
 // Hugging Face client setup
-const HF_TOKEN = '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';
+const HF_TOKEN = import.meta.env.VITE_HF_TOKEN || '';
 const HF_API_URL = 'https://api-inference.huggingface.co/models';
 
 // Initialize Hugging Face client
