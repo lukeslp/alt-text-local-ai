@@ -64,8 +64,9 @@ async function copyAltText(text) {
 }
 
 function startEditing(result) {
-  // TODO: Implement edit functionality
-  console.log('Start editing:', result);
+  // Toggle edit mode for the result
+  store.updateResult(result.id, { editing: !result.editing });
+  announce(`Edit mode ${result.editing ? 'enabled' : 'disabled'} for image ${result.id}`);
 }
 </script>
 
