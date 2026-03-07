@@ -24,15 +24,17 @@
       <button @click="accessibility.toggleHighContrast"
               class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
               role="switch"
-              :aria-checked="accessibility.isHighContrast">
-        <span class="text-sm">High Contrast</span>
+              :aria-checked="accessibility.isHighContrast"
+              :aria-label="accessibility.isHighContrast ? 'Disable high contrast' : 'Enable high contrast'">
+        <span class="text-sm" aria-hidden="true">High Contrast</span>
       </button>
-      
+
       <button @click="accessibility.toggleReduceMotion"
               class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
               role="switch"
-              :aria-checked="accessibility.reduceMotion">
-        <span class="text-sm">Reduce Motion</span>
+              :aria-checked="accessibility.reduceMotion"
+              :aria-label="accessibility.reduceMotion ? 'Disable reduced motion' : 'Enable reduced motion'">
+        <span class="text-sm" aria-hidden="true">Reduce Motion</span>
       </button>
     </div>
   </header>

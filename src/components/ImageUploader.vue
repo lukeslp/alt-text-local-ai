@@ -25,11 +25,29 @@ const props = defineProps({
 const dropzone = ref(null);
 const { processImage } = useImageProcessing();
 
+// Keep a stable reference so the paste handler can be removed on unmount
+function handlePaste(event) {
+  const items = (event.clipboardData || event.originalEvent?.clipboardData)?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      event.preventDefault();
+      const file = item.getAsFile();
+      if (file && dropzone.value) {
+        dropzone.value.addFile(file);
+      }
+      break;
+    }
+  }
+}
+
 onMounted(() => {
   initializeDropzone();
+  document.addEventListener('paste', handlePaste);
 });
 
 onBeforeUnmount(() => {
+  document.removeEventListener('paste', handlePaste);
   if (dropzone.value) {
     dropzone.value.destroy();
   }
@@ -54,13 +72,10 @@ function initializeDropzone() {
     dictFileTooBig: "File is too large ({{filesize}}MB). Max filesize: {{maxFilesize}}MB.",
     accept: async function(file, done) {
       try {
-        // Validate file type
         if (!file.type.startsWith('image/')) {
-          done(`Invalid file type. Please upload an image file.`);
+          done('Invalid file type. Please upload an image file.');
           return;
         }
-
-        // Process the image
         await processImage(file);
         done();
       } catch (error) {
@@ -70,7 +85,7 @@ function initializeDropzone() {
     }
   });
 
-  dropzone.value.on("addedfile", (file) => {
+  dropzone.value.on("addedfile", () => {
     if (dropzone.value.files.length > 1) {
       dropzone.value.removeFile(dropzone.value.files[0]);
     }
@@ -78,28 +93,11 @@ function initializeDropzone() {
 
   dropzone.value.on("error", (file, errorMessage) => {
     logger.error('Dropzone error:', errorMessage);
-    if (typeof errorMessage === 'string') {
-      props.onImageProcessed?.({ error: errorMessage });
-    } else if (errorMessage?.message) {
-      props.onImageProcessed?.({ error: errorMessage.message });
+    const msg = typeof errorMessage === 'string' ? errorMessage : errorMessage?.message;
+    if (msg) {
+      props.onImageProcessed?.({ error: msg });
     }
     dropzone.value.removeFile(file);
-  });
-
-  // Add clipboard paste support
-  document.addEventListener('paste', (event) => {
-    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-    
-    for (const item of items) {
-      if (item.type.indexOf('image') === 0) {
-        event.preventDefault();
-        const file = item.getAsFile();
-        
-        // Add the file to dropzone
-        dropzone.value.addFile(file);
-        break;
-      }
-    }
   });
 }
 </script>
