@@ -30,14 +30,32 @@ cd alt-text-local-ai
 pnpm install
 ```
 
-If you want to use Hugging Face hosted models, create a `.env.local` file:
+### Pull Ollama models
+
+Install [Ollama](https://ollama.com), then pull at least one vision model:
+
+```bash
+ollama pull llava          # recommended — best quality
+ollama pull llava-phi3     # smaller, faster
+ollama pull bakllava       # alternative
+```
+
+Start Ollama if it isn't already running:
+
+```bash
+ollama serve
+```
+
+### Hugging Face (optional)
+
+If you want to use HuggingFace hosted models instead of (or in addition to) local Ollama models, create a `.env.local` file:
 
 ```bash
 cp .env.example .env.local
 # edit .env.local and set VITE_HF_TOKEN=hf_...
 ```
 
-Then start the app:
+### Start the app
 
 ```bash
 pnpm start
