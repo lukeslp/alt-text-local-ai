@@ -1,4 +1,4 @@
-# Alt Text AI
+# Alt Text Generator
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Electron](https://img.shields.io/badge/built_with-Electron-47848F?logo=electron&logoColor=white)
@@ -95,7 +95,7 @@ Built packages land in `dist_electron/`.
 
 ### macOS
 1. Download the `.dmg` from the releases page
-2. Open the DMG and drag Alt Text AI to Applications
+2. Open the DMG and drag Alt Text Generator to Applications
 3. Right-click and choose Open on first launch (Gatekeeper prompt)
 
 ### Windows
