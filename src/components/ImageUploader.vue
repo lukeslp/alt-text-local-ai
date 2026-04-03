@@ -65,7 +65,7 @@ function initializeDropzone() {
     createImageThumbnails: true,
     acceptedFiles: "image/*",
     addRemoveLinks: true,
-    maxFiles: 1,
+    maxFiles: 10,
     maxFilesize: 5,
     dictDefaultMessage: "Drop images here or click to upload",
     dictInvalidFileType: "This file type is not supported",
@@ -86,9 +86,7 @@ function initializeDropzone() {
   });
 
   dropzone.value.on("addedfile", () => {
-    if (dropzone.value.files.length > 1) {
-      dropzone.value.removeFile(dropzone.value.files[0]);
-    }
+    // Batch mode: allow multiple files (up to maxFiles)
   });
 
   dropzone.value.on("error", (file, errorMessage) => {

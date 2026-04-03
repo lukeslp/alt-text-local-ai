@@ -34,7 +34,7 @@ class Installer {
         fs.unlinkSync(tempScript);
       } else if (this.isWindows) {
         // For Windows, download and run the MSI installer
-        const installerUrl = 'https://ollama.ai/download/ollama-installer.msi';
+        const installerUrl = 'https://ollama.com/download/ollama-installer.msi';
         const installerPath = path.join(os.tmpdir(), 'ollama-installer.msi');
         
         // Download the installer
@@ -57,7 +57,7 @@ class Installer {
 
   async getOllamaInstallScript() {
     return new Promise((resolve, reject) => {
-      https.get('https://ollama.ai/install.sh', (res) => {
+      https.get('https://ollama.com/install.sh', (res) => {
         let data = '';
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => resolve(data));

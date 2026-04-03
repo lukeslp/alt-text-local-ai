@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
-import { HF_TOKEN, HF_API_URL } from '../config/constants';
-import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 
 export const useStore = defineStore('main', () => {
@@ -9,9 +7,10 @@ export const useStore = defineStore('main', () => {
   const results = ref([]);
   const feedMessages = ref([]);
   const nextId = ref(1);
-  const selectedModel = ref('llava-phi3');
+  const selectedModel = ref(localStorage.getItem('selectedModel') || '');
   const availableModels = ref([]);
-  const apiUrl = ref('http://localhost:11434');
+  const apiUrl = ref(localStorage.getItem('ollamaApiUrl') || 'http://localhost:11434');
+  const connectionStatus = ref('unknown'); // 'unknown' | 'connected' | 'disconnected'
   const modelStatus = ref({
     loading: false,
     error: null,
@@ -26,7 +25,7 @@ export const useStore = defineStore('main', () => {
   const customPrompt = ref('');
   const detailedAnalysis = ref(true);
   const theme = ref(
-    localStorage.theme === 'dark' || 
+    localStorage.theme === 'dark' ||
     (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
       ? 'dark'
       : 'light'
@@ -38,9 +37,15 @@ export const useStore = defineStore('main', () => {
   const showSettings = ref(false);
   const showStatusFeed = ref(false);
 
+  // Vision capability cache (per session)
+  const visionCapabilityCache = new Map();
+
   // Getters
   const nextResultId = computed(() => nextId.value++);
   const isDarkMode = computed(() => theme.value === 'dark');
+  const visionModels = computed(() =>
+    availableModels.value.filter(m => m.capabilities.includes('vision'))
+  );
 
   // Actions
   function addResult(result) {
@@ -71,50 +76,130 @@ export const useStore = defineStore('main', () => {
     }
   }
 
+  // Connection Management
+  async function setApiUrl(url) {
+    const cleaned = url.replace(/\/+$/, ''); // strip trailing slashes
+    apiUrl.value = cleaned;
+    localStorage.setItem('ollamaApiUrl', cleaned);
+    visionCapabilityCache.clear();
+    connectionStatus.value = 'unknown';
+    try {
+      await detectModels();
+    } catch {
+      // detectModels already handles error messaging
+    }
+  }
+
+  async function testConnection() {
+    try {
+      const response = await fetch(`${apiUrl.value}/api/tags`, {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (response.ok) {
+        connectionStatus.value = 'connected';
+        return { ok: true };
+      }
+      connectionStatus.value = 'disconnected';
+      return { ok: false, error: `HTTP ${response.status}` };
+    } catch (error) {
+      connectionStatus.value = 'disconnected';
+      return { ok: false, error: error.message };
+    }
+  }
+
+  // Vision capability detection via /api/show
+  async function checkVisionCapability(modelName) {
+    if (visionCapabilityCache.has(modelName)) {
+      return visionCapabilityCache.get(modelName);
+    }
+
+    try {
+      const response = await fetch(`${apiUrl.value}/api/show`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: modelName })
+      });
+
+      if (!response.ok) {
+        // Fall back to name-based detection
+        const result = isKnownVisionModel(modelName);
+        visionCapabilityCache.set(modelName, result);
+        return result;
+      }
+
+      const data = await response.json();
+      // Vision models have projector_info in their metadata
+      const hasProjector = data.projector_info !== undefined;
+      // Some models declare it in their template
+      const templateMentionsImages = data.template?.includes('image') || false;
+      const isVision = hasProjector || templateMentionsImages;
+
+      visionCapabilityCache.set(modelName, isVision);
+      return isVision;
+    } catch {
+      // Fall back to name-based detection
+      const result = isKnownVisionModel(modelName);
+      visionCapabilityCache.set(modelName, result);
+      return result;
+    }
+  }
+
+  // Fallback name-based vision detection
+  function isKnownVisionModel(modelName) {
+    const name = modelName.toLowerCase();
+    const visionPatterns = ['llava', 'bakllava', 'moondream', 'minicpm-v', 'llava-llama3'];
+    return visionPatterns.some(p => name.includes(p));
+  }
+
   // Model Management
   async function detectModels() {
     modelStatus.value.isDetecting = true;
     modelStatus.value.error = null;
 
     try {
-      const response = await fetch('http://localhost:11434/api/tags');
+      const response = await fetch(`${apiUrl.value}/api/tags`);
       if (!response.ok) {
         throw new Error('Failed to fetch models from Ollama');
       }
 
+      connectionStatus.value = 'connected';
       const data = await response.json();
       const models = data.models || [];
 
-      // Enhance model data with additional information
-      availableModels.value = models.map(model => ({
+      // Check vision capabilities for all models (in parallel, with fallback)
+      const visionResults = await Promise.all(
+        models.map(m => checkVisionCapability(m.name))
+      );
+
+      // Enhance model data with actual capabilities
+      availableModels.value = models.map((model, i) => ({
         ...model,
-        capabilities: determineModelCapabilities(model.name),
-        description: generateModelDescription(model.name),
+        capabilities: visionResults[i] ? ['text', 'vision'] : ['text'],
+        description: generateModelDescription(model.name, visionResults[i]),
         generation: determineModelGeneration(model.name),
         version: determineModelVersion(model.name),
-        context_length: determineContextLength(model.name)
+        context_length: model.details?.parameter_size ? parseContextFromDetails(model) : determineContextLength(model.name)
       }));
 
-      // Check if current model exists in available models
+      // Auto-select a vision model if current selection is invalid
       const currentModelExists = availableModels.value.some(m => m.name === selectedModel.value);
-      
+
       if (!currentModelExists) {
-        const visionModels = ['llava', 'llava-phi3', 'bakllava'];
-        const firstAvailableVisionModel = availableModels.value.find(m => 
-          visionModels.some(vm => m.name.toLowerCase().includes(vm))
-        );
-        
-        if (firstAvailableVisionModel) {
-          selectedModel.value = firstAvailableVisionModel.name;
+        const firstVisionModel = availableModels.value.find(m => m.capabilities.includes('vision'));
+
+        if (firstVisionModel) {
+          selectedModel.value = firstVisionModel.name;
+          localStorage.setItem('selectedModel', firstVisionModel.name);
         } else if (availableModels.value.length > 0) {
           selectedModel.value = availableModels.value[0].name;
-          addFeedMessage('No vision-capable models found. Please install llava, llava-phi3, or bakllava.', 'warning');
+          addFeedMessage('No vision-capable models found. Install a vision model (e.g., ollama pull llava).', 'warning');
         }
       }
 
       modelStatus.value.lastCheck = new Date();
       return availableModels.value;
     } catch (error) {
+      connectionStatus.value = 'disconnected';
       modelStatus.value.error = error.message;
       addFeedMessage(`Failed to detect models: ${error.message}`, 'error');
       throw error;
@@ -124,37 +209,28 @@ export const useStore = defineStore('main', () => {
   }
 
   // Helper functions for model metadata
-  function determineModelCapabilities(modelName) {
-    const capabilities = ['text'];
+  function generateModelDescription(modelName, isVision) {
     const name = modelName.toLowerCase();
-    
-    if (name.includes('llava') || name.includes('bakllava')) {
-      capabilities.push('vision');
+    if (isVision) {
+      if (name.includes('llava-phi3')) return 'LLaVA-Phi3 vision-language model';
+      if (name.includes('llava-llama3')) return 'LLaVA-Llama3 vision-language model';
+      if (name.includes('llava')) return 'LLaVA vision-language model';
+      if (name.includes('bakllava')) return 'BakLLaVA vision-language model';
+      if (name.includes('moondream')) return 'Moondream vision-language model';
+      if (name.includes('minicpm-v')) return 'MiniCPM-V vision-language model';
+      return 'Vision-language model';
     }
-    
-    return capabilities;
-  }
-
-  function generateModelDescription(modelName) {
-    const name = modelName.toLowerCase();
-    let description = 'Ollama model';
-    
-    if (name.includes('llava-phi3')) {
-      description = 'LLaVA-Phi3 vision-language model';
-    } else if (name.includes('llava')) {
-      description = 'LLaVA vision-language model';
-    } else if (name.includes('bakllava')) {
-      description = 'BakLLaVA vision-language model';
-    }
-    
-    return description;
+    return 'Text-only model';
   }
 
   function determineModelGeneration(modelName) {
     const name = modelName.toLowerCase();
-    if (name.includes('phi3')) return 'phi3';
+    if (name.includes('phi3') || name.includes('phi-3')) return 'phi3';
+    if (name.includes('llama3') || name.includes('llama-3')) return 'llama3';
     if (name.includes('llava')) return 'llava';
     if (name.includes('bakllava')) return 'bakllava';
+    if (name.includes('moondream')) return 'moondream';
+    if (name.includes('minicpm')) return 'minicpm';
     return 'other';
   }
 
@@ -164,11 +240,21 @@ export const useStore = defineStore('main', () => {
   }
 
   function determineContextLength(modelName) {
-    // Default context lengths - these could be made more accurate
     const name = modelName.toLowerCase();
     if (name.includes('phi3')) return 2048;
     if (name.includes('llava')) return 4096;
     return 2048;
+  }
+
+  function parseContextFromDetails(model) {
+    // Use model details if available from Ollama API
+    if (model.details?.parameter_size) {
+      const size = model.details.parameter_size.toLowerCase();
+      if (size.includes('7b')) return 4096;
+      if (size.includes('13b')) return 4096;
+      if (size.includes('34b')) return 8192;
+    }
+    return determineContextLength(model.name);
   }
 
   // Model filtering and sorting functions
@@ -204,16 +290,16 @@ export const useStore = defineStore('main', () => {
 
   async function setModel(modelName) {
     try {
-      // Validate model exists
       const modelExists = availableModels.value.some(m => m.name === modelName);
       if (!modelExists) {
         throw new Error(`Model ${modelName} not found`);
       }
 
       selectedModel.value = modelName;
-      
+      localStorage.setItem('selectedModel', modelName);
+
       // Load the model in the background
-      await fetch('http://localhost:11434/api/generate', {
+      await fetch(`${apiUrl.value}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -229,17 +315,19 @@ export const useStore = defineStore('main', () => {
     }
   }
 
-  // Modified generateAltText to use simplified parameters
-  async function generateAltText(base64Image) {
+  // Generate alt text with streaming support
+  async function generateAltText(base64Image, onToken) {
+    const useStreaming = typeof onToken === 'function';
+
     try {
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const response = await fetch(`${apiUrl.value}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: selectedModel.value,
           prompt: customPrompt.value || 'Describe this image in detail, suitable for use as alt text.',
           images: [base64Image.split(',')[1]],
-          stream: false,
+          stream: useStreaming,
           options: modelParams.value
         })
       });
@@ -249,11 +337,43 @@ export const useStore = defineStore('main', () => {
         throw new Error(error?.error || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      return {
-        response: data.response,
-        modelUsed: selectedModel.value
-      };
+      if (useStreaming) {
+        // Parse NDJSON streaming response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter(Boolean);
+
+          for (const line of lines) {
+            try {
+              const json = JSON.parse(line);
+              if (json.response) {
+                fullResponse += json.response;
+                onToken(fullResponse);
+              }
+            } catch {
+              // Skip malformed JSON lines
+            }
+          }
+        }
+
+        return {
+          response: fullResponse,
+          modelUsed: selectedModel.value
+        };
+      } else {
+        const data = await response.json();
+        return {
+          response: data.response,
+          modelUsed: selectedModel.value
+        };
+      }
     } catch (error) {
       logger.error('Failed to generate alt text:', error);
       throw error;
@@ -262,17 +382,9 @@ export const useStore = defineStore('main', () => {
 
   function updateFontSettings() {
     const html = document.documentElement;
-    
-    // Apply font family globally
     html.style.setProperty('--font-primary', selectedFont.value);
-    
-    // Apply font size globally
     html.style.setProperty('--base-font-size', `${baseFontSize.value}px`);
-    
-    // Force font inheritance throughout the app
     document.body.style.setProperty('font-family', selectedFont.value, 'important');
-    
-    // Save settings
     localStorage.setItem('font-family', selectedFont.value);
     localStorage.setItem('base-font-size', baseFontSize.value.toString());
   }
@@ -317,13 +429,9 @@ export const useStore = defineStore('main', () => {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   }
 
-  // Initialize font settings
-  onMounted(() => {
-    updateFontSettings();
-  });
-
   // Initialize
   onMounted(async () => {
+    updateFontSettings();
     try {
       await detectModels();
     } catch (error) {
@@ -337,6 +445,7 @@ export const useStore = defineStore('main', () => {
     feedMessages,
     selectedModel,
     apiUrl,
+    connectionStatus,
     modelStatus,
     modelParams,
     customPrompt,
@@ -350,11 +459,14 @@ export const useStore = defineStore('main', () => {
     // Getters
     nextResultId,
     isDarkMode,
+    visionModels,
     // Actions
     addResult,
     updateResult,
     removeResult,
     addFeedMessage,
+    setApiUrl,
+    testConnection,
     detectModels,
     setModel,
     generateAltText,
@@ -372,4 +484,4 @@ export const useStore = defineStore('main', () => {
     sortModels,
     getPagedModels
   };
-}); 
+});

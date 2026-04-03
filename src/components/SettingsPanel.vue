@@ -5,6 +5,49 @@
     </div>
 
     <div class="space-y-6">
+      <!-- Connection Settings -->
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Connection</h3>
+
+        <div class="space-y-2">
+          <label for="api-url-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Ollama API URL
+          </label>
+          <div class="flex gap-2">
+            <input id="api-url-input"
+                   type="url"
+                   v-model="apiUrlInput"
+                   @keydown.enter="applyApiUrl"
+                   placeholder="http://localhost:11434"
+                   class="flex-1 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm" />
+            <button @click="applyApiUrl"
+                    class="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    :disabled="apiUrlInput === store.apiUrl">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="setLocalUrl"
+                  class="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            Local
+          </button>
+          <button @click="handleTestConnection"
+                  class="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  :disabled="testing">
+            {{ testing ? 'Testing…' : 'Test' }}
+          </button>
+          <span class="text-xs" :class="{
+            'text-green-600 dark:text-green-400': store.connectionStatus === 'connected',
+            'text-red-600 dark:text-red-400': store.connectionStatus === 'disconnected',
+            'text-gray-500 dark:text-gray-400': store.connectionStatus === 'unknown'
+          }" aria-live="polite">
+            {{ store.connectionStatus === 'connected' ? 'Connected' : store.connectionStatus === 'disconnected' ? 'Disconnected' : '' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Model Selection -->
       <ModelSelector />
 
@@ -126,13 +169,35 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useStore } from '../store';
 import { useAccessibility } from '../composables/useAccessibility';
 import ModelSelector from './ModelSelector.vue';
 
 const store = useStore();
 const accessibility = useAccessibility();
+
+const apiUrlInput = ref(store.apiUrl);
+const testing = ref(false);
+
+function applyApiUrl() {
+  if (apiUrlInput.value && apiUrlInput.value !== store.apiUrl) {
+    store.setApiUrl(apiUrlInput.value);
+    accessibility.announce('API URL updated');
+  }
+}
+
+function setLocalUrl() {
+  apiUrlInput.value = 'http://localhost:11434';
+  applyApiUrl();
+}
+
+async function handleTestConnection() {
+  testing.value = true;
+  const result = await store.testConnection();
+  testing.value = false;
+  accessibility.announce(result.ok ? 'Connection successful' : `Connection failed: ${result.error}`);
+}
 
 // Watch for font changes
 watch(() => store.selectedFont, (newFont) => {

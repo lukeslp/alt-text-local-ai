@@ -18,6 +18,7 @@ export function useImageProcessing() {
         processing: true,
         altText: null,
         error: null,
+        modelUsed: store.selectedModel,
         processingSteps: {
           resize: false,
           upload: false,
@@ -34,17 +35,20 @@ export function useImageProcessing() {
       store.addFeedMessage('Image resized and optimized', 'info');
 
       result.processingSteps.upload = true;
-      store.addFeedMessage('Uploading to AI model...', 'info');
+      store.addFeedMessage('Sending to AI model...', 'info');
 
-      // Generate alt text
+      // Generate alt text with streaming — update the result as tokens arrive
       result.processingSteps.generate = true;
-      const response = await store.generateAltText(result.image);
-      
-      // Update result
+      const response = await store.generateAltText(result.image, (partialText) => {
+        result.altText = partialText;
+        store.updateResult({ ...result });
+      });
+
+      // Final update with cleaned text
       result.altText = cleanDescription(response.response);
       result.processing = false;
-      
-      // Force store update
+      result.modelUsed = response.modelUsed;
+
       store.updateResult(result);
       store.addFeedMessage(`Completed processing: ${file.name}`, 'success');
 
@@ -61,4 +65,4 @@ export function useImageProcessing() {
     processing,
     processImage
   };
-} 
+}

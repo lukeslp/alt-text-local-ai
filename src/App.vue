@@ -1,5 +1,8 @@
 <template>
   <div class="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <!-- Setup Wizard -->
+    <SetupWizard v-if="showSetup" @setup-complete="handleSetupComplete" />
+
     <!-- Skip to main content link -->
     <a href="#main-content"
        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white p-4 z-50 rounded focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600">
@@ -92,10 +95,12 @@ import { useStore } from './store';
 import ImageUploader from './components/ImageUploader.vue';
 import ResultsList from './components/ResultsList.vue';
 import SettingsPanel from './components/SettingsPanel.vue';
+import SetupWizard from './components/SetupWizard.vue';
 
 const store = useStore();
 const loading = ref(false);
 const loadingMessage = ref('');
+const showSetup = ref(!localStorage.getItem('setupComplete'));
 
 // Computed properties from store
 const feedMessages = computed(() => store.feedMessages);
@@ -105,6 +110,10 @@ function handleImageProcessed(result) {
   if (result.error) {
     store.addFeedMessage(result.error, 'error');
   }
+}
+
+function handleSetupComplete() {
+  showSetup.value = false;
 }
 
 // Initialize theme and font settings

@@ -2,6 +2,27 @@
   <section aria-labelledby="results-title" class="results-section">
     <h2 id="results-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Results</h2>
 
+    <!-- Export controls -->
+    <div v-if="completedCount > 0" class="flex items-center gap-2 mb-4 flex-wrap">
+      <span class="text-sm text-gray-600 dark:text-gray-400">{{ completedCount }} result{{ completedCount > 1 ? 's' : '' }}</span>
+      <button @click="exportActions.copyAllToClipboard()"
+              class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        Copy All
+      </button>
+      <button @click="exportActions.downloadJSON()"
+              class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400">
+        JSON
+      </button>
+      <button @click="exportActions.downloadCSV()"
+              class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400">
+        CSV
+      </button>
+      <button @click="exportActions.downloadHTML()"
+              class="px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400">
+        HTML
+      </button>
+    </div>
+
     <!-- Empty state -->
     <div v-if="store.results.length === 0"
          class="flex flex-col items-center justify-center py-16 text-center text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
@@ -46,6 +67,14 @@
               <span>{{ result.error }}</span>
             </div>
 
+            <!-- Streaming state — show text as it arrives -->
+            <div v-else-if="result.processing && result.altText" class="space-y-3">
+              <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed break-words">
+                {{ result.altText }}<span class="streaming-cursor" aria-hidden="true">|</span>
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400" role="status">Generating...</p>
+            </div>
+
             <!-- Success / view state -->
             <div v-else-if="!result.processing" class="space-y-3">
               <!-- Inline edit textarea -->
@@ -58,10 +87,18 @@
                   rows="4"
                   class="w-full px-3 py-2 text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   aria-describedby="edit-hint"
+                  @keydown.escape="cancelEdit"
+                  @keydown.ctrl.enter="saveEdit(result)"
+                  @keydown.meta.enter="saveEdit(result)"
                 ></textarea>
-                <p id="edit-hint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Press Save to apply, or Cancel to discard changes.
-                </p>
+                <div class="mt-1 flex items-center justify-between">
+                  <p id="edit-hint" class="text-xs text-gray-500 dark:text-gray-400">
+                    Ctrl+Enter to save, Escape to cancel
+                  </p>
+                  <span class="text-xs text-gray-400 dark:text-gray-500" aria-live="polite">
+                    {{ editDraft.length }} chars
+                  </span>
+                </div>
                 <div class="flex gap-2 mt-2">
                   <button @click="saveEdit(result)"
                           class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
@@ -99,12 +136,18 @@
 </template>
 
 <script setup>
-import { ref, nextTick, TransitionGroup } from 'vue';
+import { ref, computed, nextTick, TransitionGroup } from 'vue';
 import { useStore } from '../store';
 import { useAccessibility } from '../composables/useAccessibility';
+import { useExport } from '../composables/useExport';
 
 const store = useStore();
 const { announce } = useAccessibility();
+const exportActions = useExport();
+
+const completedCount = computed(() =>
+  store.results.filter(r => r.altText && !r.processing).length
+);
 
 // Edit state
 const editingId = ref(null);
@@ -162,5 +205,21 @@ function cancelEdit() {
 
 .results-leave-active {
   position: absolute;
+}
+
+.streaming-cursor {
+  animation: blink 1s step-end infinite;
+  font-weight: bold;
+  color: theme('colors.blue.500');
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming-cursor {
+    animation: none;
+  }
 }
 </style>
