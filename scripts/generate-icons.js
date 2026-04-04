@@ -133,7 +133,7 @@ async function generateIcons() {
 }
 
 // Copy the GIF file to build resources
-const sourceGif = path.join(__dirname, '../triangle_construct_light.gif');
+const sourceGif = path.join(__dirname, '../assets/triangle_construct_light.gif');
 const destGif = path.join(__dirname, '../build/icons/triangle_construct_light.gif');
 
 try {
