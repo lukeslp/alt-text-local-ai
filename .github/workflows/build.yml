@@ -22,7 +22,7 @@ jobs:
       - run: npm install
       - run: npm run generate-icons
       - run: npx cross-env ELECTRON=true npx vite build
-      - run: npx electron-builder --linux --config
+      - run: npx electron-builder --linux --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
@@ -44,7 +44,7 @@ jobs:
       - run: npm install
       - run: npm run generate-icons
       - run: npx cross-env ELECTRON=true npx vite build
-      - run: npx electron-builder --win --config
+      - run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
@@ -64,13 +64,13 @@ jobs:
       - run: npm install
       - run: npm run generate-icons
       - run: npx cross-env ELECTRON=true npx vite build
-      - run: npx electron-builder --mac --config.mac.identity=null --config
+      - run: npx electron-builder --mac --config.mac.identity=null --config.mac.target=zip --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: dist_electron/*.dmg
+          path: dist_electron/*.zip
 
   release:
     needs: [build-linux, build-windows, build-macos]
