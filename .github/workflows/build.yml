@@ -1,0 +1,76 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run generate-icons
+      - run: npx cross-env ELECTRON=true npx vite build
+      - run: npx electron-builder --linux --config
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            dist_electron/*.AppImage
+            dist_electron/*.deb
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run generate-icons
+      - run: npx cross-env ELECTRON=true npx vite build
+      - run: npx electron-builder --win --config
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist_electron/*.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run generate-icons
+      - run: npx cross-env ELECTRON=true npx vite build
+      - run: npx electron-builder --mac --config.mac.identity=null --config
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist_electron/*.dmg
+
+  release:
+    needs: [build-linux, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: artifacts
+      - run: ls -lh artifacts/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
