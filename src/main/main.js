@@ -201,25 +201,21 @@ const openTerminal = async () => {
       case 'win32':
         command = 'start cmd'
         break
-      case 'linux':
+      case 'linux': {
         // Try common terminal emulators
         const terminals = ['gnome-terminal', 'konsole', 'xterm']
+        command = terminals[0] // Default to gnome-terminal, fallback to xterm
         for (const term of terminals) {
           try {
-            exec(`which ${term}`, (error) => {
-              if (!error) {
-                command = term
-                return
-              }
-            })
-          } catch (err) {
+            require('child_process').execSync(`which ${term}`, { stdio: 'ignore' })
+            command = term
+            break
+          } catch (_err) {
             // Continue trying
           }
         }
-        if (!command) {
-          command = 'xterm' // Fallback
-        }
         break
+      }
       default:
         reject(new Error('Unsupported platform'))
         return
